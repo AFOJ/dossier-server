@@ -1,0 +1,11 @@
+\section{{titleArg}}
+\educationStart
+{{#each institutions}}
+  \education
+  {{nameArg}}{{datesArg}}{{degreeArg}}{{locationArg}}
+  {{#if paragraphArg}}
+    \resumeItemWithoutTitle
+    {{paragraphArg}}
+  {{/if}}
+{{/each}}
+\resumeSubHeadingListEnd

@@ -1,0 +1,29 @@
+\section{{titleArg}}
+{{#each companies}}
+  {{#if websiteArg}}
+    \employerTitle
+    {{websiteArg}}{{nameArg}}{{datesArg}}
+  {{else}}
+    \employerTitlePlain
+    {{nameArg}}{{datesArg}}
+  {{/if}}
+  \resumeSubHeadingListStart
+  {{#each roles}}
+    \jobLineItem
+    {{roleLineArg}}{{datesArg}}
+    \resumeItemListStart
+    {{#each bullets}}
+      {{#if titleArg}}
+        \resumeItem{{titleArg}}{{textArg}}
+      {{else}}
+        \resumeItemWithoutTitle
+        {{textArg}}
+      {{/if}}
+    {{/each}}
+    \resumeItemListEnd
+  {{/each}}
+  \resumeSubHeadingListEnd
+  {{#unless @last}}
+    \vspace{4pt}
+  {{/unless}}
+{{/each}}

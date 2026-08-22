@@ -1,0 +1,13 @@
+\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+{{nameLine}}\\
+{{#if (or contactLine linksLine)}}
+  {{contactLine}}
+  &
+  {{linksLine}}\\
+{{/if}}
+{{#if (or roleArg locationArg)}}
+  {{roleArg}}
+  &
+  {{locationArg}}\\
+{{/if}}
+\end{tabular*}

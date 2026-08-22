@@ -128,6 +128,12 @@ describe("resumePayloadSchema", () => {
     expect(validate(payload)).toBe(false)
   })
 
+  it("rejects whitespace-only strings", () => {
+    const payload = structuredClone(validPayload)
+    paragraphSection(payload).title = "   "
+    expect(validate(payload)).toBe(false)
+  })
+
   it("rejects unknown section types", () => {
     const payload = structuredClone(validPayload)
     payload.sections.push({

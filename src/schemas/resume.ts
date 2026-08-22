@@ -1,4 +1,5 @@
-const nonEmptyString = { type: "string", minLength: 1 }
+// Must contain at least one non-whitespace character, so " " fails too.
+const nonEmptyString = { type: "string", minLength: 1, pattern: "\\S" }
 
 export const contactLinkSchema = {
   type: "object",

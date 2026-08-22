@@ -4,8 +4,12 @@
  * Dates are raw strings passed through untouched. Whatever is provided
  * is rendered: both -> "start - end", one -> that value, none -> "".
  */
+
+/** True when the string exists and carries at least one visible character. */
+export function isPresent(value: string | null | undefined): boolean {
+  return value !== null && value !== undefined && /\S/.test(value)
+}
+
 export function formatDateRange(start?: string | null, end?: string | null): string {
-  return [start, end]
-    .filter((value) => value !== null && value !== undefined && value.trim() !== "")
-    .join(" - ")
+  return [start, end].filter(isPresent).join(" - ")
 }
