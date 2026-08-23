@@ -65,6 +65,18 @@ describe("POST /api/resumes/process", () => {
     expect(body.error.details[0]).toHaveProperty("message")
   })
 
+  it("rejects malformed JSON bodies as a client error, not a server error", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: PROCESS_URL,
+      headers: { "content-type": "application/json" },
+      payload: "{not json",
+    })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.json().error.code).toBe("VALIDATION_ERROR")
+  })
+
   it("maps compile failures to a COMPILE_ERROR envelope carrying the log excerpt", async () => {
     vi.mocked(compileLatex).mockRejectedValueOnce(
       new LaTeXCompileError("tectonic exited with an error", "./main.tex:42: Missing $ inserted."),

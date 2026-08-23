@@ -20,6 +20,7 @@ export function registerErrorHandlers(app: FastifyInstance): void {
       return response.send(reply)
     }
 
+    // Anything thrown as a ResponseHandler carries its own contract.
     if (error instanceof ResponseHandler) {
       const context =
         error instanceof ErrorResponse
@@ -31,6 +32,15 @@ export function registerErrorHandlers(app: FastifyInstance): void {
         request.log.warn(context, "controlled error")
       }
       return error.send(reply)
+    }
+
+    // Malformed request body (invalid JSON, wrong encoding, ...).
+    // Checked after ResponseHandler so thrown errors with a status are
+    // rendered through their own contract.
+    if (typeof error.statusCode === "number" && error.statusCode < 500) {
+      const response = ErrorResponse.validation("Malformed request body")
+      request.log.debug({ err: error }, "malformed request body")
+      return response.send(reply)
     }
 
     // Log everything, reveal nothing.
