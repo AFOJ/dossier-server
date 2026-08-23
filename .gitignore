@@ -24,3 +24,6 @@ Thumbs.db
 
 # Logs
 npm-debug.log*
+
+# Generated resumes
+resume.pdf
