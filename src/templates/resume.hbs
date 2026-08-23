@@ -13,7 +13,8 @@
 \usepackage{titlesec}
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{enumitem}
-\usepackage[pdftex,hidelinks=true]{hyperref}
+% tectonic compiles with XeTeX, so let hyperref detect its own driver.
+\usepackage[hidelinks=true]{hyperref}
 \usepackage{fancyhdr}
 
 \renewcommand{\headrulewidth}{0pt}
@@ -72,17 +73,20 @@
     \end{tabular*}\vspace{-4pt}
 }
 
+% XeTeX (tectonic) inserts ~11.5pt of extra glue between these tabular*
+% macros and a following itemize where pdfLaTeX does not, so the trailing
+% vspace is compensated to match the original pdfLaTeX layout.
 \newcommand{\employerTitle}[3]{
   \begin{tabular*}{1\textwidth}{l@{\extracolsep{\fill}}r}
     \href{#1}{\textbf{#2}} & \textbf{#3} \\
-  \end{tabular*}\vspace{-4pt}
+  \end{tabular*}\vspace{-16.6pt}
 }
 
 % Variant of \employerTitle for companies without a website link.
 \newcommand{\employerTitlePlain}[2]{
   \begin{tabular*}{1\textwidth}{l@{\extracolsep{\fill}}r}
     \textbf{#1} & \textbf{#2} \\
-  \end{tabular*}\vspace{-4pt}
+  \end{tabular*}\vspace{-16.6pt}
 }
 
 \newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-5pt}}

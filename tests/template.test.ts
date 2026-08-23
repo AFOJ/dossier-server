@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest"
+import { readFileSync } from "node:fs"
 import { renderResume } from "../src/services/template.js"
 import type { ExperienceCompany, ResumePayload } from "../src/schemas/resume.js"
 
@@ -182,9 +183,9 @@ describe("renderResume", () => {
     expect(tex).toContain("{BSc Computer Science (1.3)}")
   })
 
-  it("renders thesis paragraphs as untitled bullets under education", () => {
+  it("renders thesis paragraphs as plain text under education", () => {
     const tex = squash(renderResume(payloadFixture))
-    expect(tex).toContain("\\resumeItemWithoutTitle {Thesis on distributed systems.}")
+    expect(tex).toContain("\\par {Thesis on distributed systems.}")
   })
 
   it("renders sections in payload order", () => {
