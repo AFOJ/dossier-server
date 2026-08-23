@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      # Overlay live templates over the baked-in copies for fast iteration;
+      # restart the container after edits to drop Handlebars' compiled cache.
+      - ./src/templates:/app/dist/templates:ro
+    environment:
+      PORT: 3000

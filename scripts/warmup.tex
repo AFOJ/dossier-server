@@ -1,0 +1,159 @@
+%-------------------------
+% Tectonic cache warmer for the Docker build.
+%
+% Mirrors the static part of src/templates/resume.hbs (preamble + custom
+% commands) and exercises every construct the partials emit, so compiling
+% this once at image-build time bakes every LaTeX package a real resume
+% needs into tectonic's cache. Lives OUTSIDE the src-dependent layers on
+% purpose: application code changes must not invalidate this step.
+%
+% If you add a \usepackage to the templates, add it here too -- enforced
+% by tests/template.test.ts ("warmup.tex caches every package").
+%-------------------------
+
+\documentclass[letterpaper,10.8pt]{article}
+\usepackage{tabularx}
+\usepackage{latexsym}
+\usepackage{geometry}
+\usepackage[english]{babel}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{enumitem}
+% tectonic compiles with XeTeX, so let hyperref detect its own driver.
+\usepackage[hidelinks=true]{hyperref}
+\usepackage{fancyhdr}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.25in}
+\addtolength{\evensidemargin}{-0.25in}
+\addtolength{\topmargin}{-0.35in}
+\addtolength{\textwidth}{0.5in}
+\addtolength{\textheight}{1in}
+
+\urlstyle{rm}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-3pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+%-------------------------
+% Custom commands (kept in sync with resume.hbs)
+%-------------------------
+\newcommand{\resumeItem}[2]{
+  \item\small{
+    \textbf{#1}{: #2 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeItemWithoutTitle}[1]{
+  \item\small{#1 \vspace{-2pt}}
+}
+
+\newcommand{\education}[4]{
+  \vspace{0pt}\item[]
+    \begin{tabular*}{1\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-4pt}
+}
+
+\newcommand{\jobLineItem}[2]{
+  \vspace{0pt}\item[]
+    \begin{tabular*}{0.98\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-4pt}
+}
+
+% XeTeX (tectonic) inserts ~11.5pt of extra glue between these tabular*
+% macros and a following itemize where pdfLaTeX does not, so the trailing
+% vspace is compensated to match the original pdfLaTeX layout.
+\newcommand{\employerTitle}[3]{
+  \begin{tabular*}{1\textwidth}{l@{\extracolsep{\fill}}r}
+    \href{#1}{\textbf{#2}} & \textbf{#3} \\
+  \end{tabular*}\vspace{-16.6pt}
+}
+
+% Variant of \employerTitle for companies without a website link.
+\newcommand{\employerTitlePlain}[2]{
+  \begin{tabular*}{1\textwidth}{l@{\extracolsep{\fill}}r}
+    \textbf{#1} & \textbf{#2} \\
+  \end{tabular*}\vspace{-16.6pt}
+}
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-5pt}}
+
+\renewcommand{\labelitemii}{$\circ$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\educationStart}{\begin{itemize}[leftmargin=0pt]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------
+% Body: one pass over every macro above, including edge cases such as
+% empty date args, untitled bullets, plain paragraphs under education,
+% and characters that require LaTeX escaping.
+%
+% The header block mirrors buildHeader() in src/services/template-model.ts:
+% tectonic caches fonts lazily per size/shape, so \LARGE bold (the name)
+% and \texttt (email/phone) must be compiled here or runtime compilation
+% will try to fetch them from the network and fail offline.
+%-------------------------
+\begin{document}
+
+\textbf{\LARGE {Alex Moreau}}\\
+\texttt{\href{mailto:alex@example.com}{alex@example.com}} \texttt{+45 555 0142} \href{https://alexmoreau.example.com}{Portfolio}\\
+
+\section{Profile}
+
+Seasoned chef with 11 years of experience \& a focus on R\&D --- \$500k savings, 40 covers nightly.
+
+\section{Experience}
+
+\employerTitle{https://www.thomaskeller.com/tfl}{The French Laundry}{August 2015 - December 2019}
+\resumeSubHeadingListStart
+  \jobLineItem{Sous Chef (Full-time, On-site)}{May 2017 - December 2019}
+  \resumeItemListStart
+    \resumeItem{Brigade Leadership}{Supervised 12 cooks across garde manger \& saucier stations.}
+    \resumeItemWithoutTitle{Worked the fish station through daily tasting-menu changes.}
+  \resumeItemListEnd
+  \jobLineItem{Stage (Summer Internship)}{}
+  \resumeItemListStart
+    \resumeItemWithoutTitle{Staged across starters \& desserts during two tasting menus nightly.}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+\vspace{4pt}
+
+\employerTitlePlain{Noma}{January 2020 - Present}
+\resumeSubHeadingListStart
+  \jobLineItem{Chef de Cuisine (Full-time, Copenhagen)}{January 2020 - August 2023}
+  \resumeItemListStart
+    \resumeItem{Fermentation Lab}{Built a lab producing 60+ garums, kojis \& vinegars.}
+  \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+\section{Skills}
+
+\resumeSubHeadingListStart
+  \resumeSubItem{Techniques}{Fermentation, Whole-animal butchery, Confectionery}
+  \resumeSubItem{Cuisines}{Nordic, Classical French, Japanese}
+\vspace{5pt} \resumeSubHeadingListEnd
+
+\section{Education}
+
+\educationStart
+  \education{Le Cordon Bleu Paris}{September 2013 - June 2015}{Grand Diplôme (Mention Très Bien)}{Paris, FR}
+  \par Final-term internship staged at a two-star brigade in Lyon.
+\resumeSubHeadingListEnd
+
+\end{document}

@@ -1,0 +1,132 @@
+{
+  "title": "Head Chef Resume",
+  "contact": {
+    "full_name": "Alex Moreau",
+    "role": "Head Chef",
+    "email": "alex@example.com",
+    "phone": "+45 555 0142",
+    "location": "Copenhagen, DK",
+    "links": [
+      { "label": "Portfolio", "url": "https://alexmoreau.example.com" },
+      { "label": "Instagram", "url": "https://instagram.com/alexmoreaucooks" }
+    ]
+  },
+  "sections": [
+    {
+      "type": "paragraph",
+      "title": "Profile",
+      "text": "Chef with 11 years across Michelin-starred kitchens & a focus on Nordic fermentation, leading brigades of up to 18 cooks."
+    },
+    {
+      "type": "experience",
+      "title": "Experience",
+      "companies": [
+        {
+          "company_name": "Noma",
+          "start_date": "January 2020",
+          "end_date": null,
+          "roles": [
+            {
+              "job_title": "Chef de Cuisine (Full-time, On-site)",
+              "start_date": "January 2020",
+              "end_date": "August 2023",
+              "bullets": [
+                {
+                  "type": "text",
+                  "text": "Ran the game & forest menu seasons, serving 40 covers nightly across 12 courses."
+                },
+                {
+                  "type": "text-with-title",
+                  "title": "Fermentation Lab",
+                  "text": "Built a lab producing 60+ in-house garums, kojis & vinegars; cut external supplier costs by $80k per year."
+                }
+              ]
+            },
+            {
+              "job_title": "Consulting Chef",
+              "start_date": "September 2023",
+              "end_date": "Present",
+              "bullets": [
+                {
+                  "type": "text",
+                  "text": "Advised pop-up residencies in Tokyo & New York on menu development and local sourcing."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "company_name": "Geranium",
+          "company_website": "https://geranium.dk",
+          "start_date": "June 2014",
+          "end_date": "August 2014",
+          "roles": [
+            {
+              "job_title": "Stage (Summer Internship)",
+              "bullets": [
+                {
+                  "type": "text",
+                  "text": "Staged across starters & desserts during a summer service of two tasting menus nightly."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "company_name": "The French Laundry",
+          "company_website": "https://www.thomaskeller.com/tfl",
+          "start_date": "August 2015",
+          "end_date": "December 2019",
+          "roles": [
+            {
+              "job_title": "Sous Chef (Full-time, On-site)",
+              "start_date": "May 2017",
+              "end_date": "December 2019",
+              "bullets": [
+                {
+                  "type": "text-with-title",
+                  "title": "Brigade Leadership",
+                  "text": "Supervised 12 cooks across garde manger & saucier stations during three consecutive Michelin three-star reviews."
+                }
+              ]
+            },
+            {
+              "job_title": "Line Cook",
+              "start_date": "August 2015",
+              "end_date": "April 2017",
+              "bullets": [
+                {
+                  "type": "text",
+                  "text": "Worked the fish station through daily tasting-menu changes; zero missed allergen protocols in 20 months."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "groups": [
+        { "title": "Techniques", "items": ["Fermentation", "Whole-animal butchery", "Confectionery", "Wood-fire cookery"] },
+        { "title": "Cuisines", "items": ["Nordic", "Classical French", "Japanese"] }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "institutions": [
+        {
+          "name": "Le Cordon Bleu Paris",
+          "degree": "Grand Diplôme (Cuisine & Pâtisserie)",
+          "grade": "Mention Très Bien",
+          "start_date": "September 2013",
+          "end_date": "June 2015",
+          "location": "Paris, FR",
+          "paragraph": "Final-term internship staged at a two-star brigade in Lyon."
+        }
+      ]
+    }
+  ]
+}
