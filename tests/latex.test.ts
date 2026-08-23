@@ -55,7 +55,8 @@ function fakeTectonic(artifacts: {
   }
 }
 
-import { compileLatex, LaTeXCompileError, activeCompilations } from "../src/services/latex.js"
+import { compileLatex, activeCompilations } from "../src/services/latex.js"
+import { LaTeXCompileError } from "../src/responses.js"
 
 beforeEach(() => {
   execCalls.length = 0

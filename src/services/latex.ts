@@ -1,15 +1,14 @@
 /**
  * Compiles LaTeX source into a PDF by shelling out to tectonic.
- *
- * Each compilation runs in its own temporary directory so concurrent
- * requests cannot clobber each other's artifacts. A semaphore caps
- * concurrency because LaTeX compilation is CPU-heavy.
+ * Each compile gets its own temp directory; concurrency is capped because
+ * compilation is CPU-heavy.
  */
 
 import { execFile } from "node:child_process"
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import { LaTeXCompileError } from "../responses.js"
 
 const DEFAULT_BIN = "tectonic"
 const DEFAULT_TIMEOUT_MS = 30_000
@@ -18,26 +17,12 @@ const LOG_EXCERPT_MAX_CHARS = 2000
 const LOG_EXCERPT_MAX_LINES = 40
 
 export interface CompileOptions {
-  /** Path to the tectonic binary. Falls back to $TECTONIC_BIN, then PATH. */
   binPath?: string
-  /** Wall-clock budget for a single compilation. */
   timeoutMs?: number
 }
 
-/** Raised when compilation fails or produces no PDF. */
-export class LaTeXCompileError extends Error {
-  /** Tail of the LaTeX log (or compiler stderr) for diagnostics. */
-  readonly logExcerpt: string
-
-  constructor(message: string, logExcerpt: string) {
-    super(message)
-    this.name = "LaTeXCompileError"
-    this.logExcerpt = logExcerpt
-  }
-}
-
 // ---------------------------------------------------------------------------
-// Process execution
+// Concurrency gate
 // ---------------------------------------------------------------------------
 
 interface ExecOutcome {
@@ -53,7 +38,6 @@ function execAsPromise(
   return new Promise((resolve, reject) => {
     execFile(bin, args, options, (error, stdout, stderr) => {
       if (error) {
-        // Preserve captured output on the error for diagnostics.
         Object.assign(error, { stdout, stderr })
         reject(error)
       } else {
@@ -62,10 +46,6 @@ function execAsPromise(
     })
   })
 }
-
-// ---------------------------------------------------------------------------
-// Concurrency gate
-// ---------------------------------------------------------------------------
 
 class Semaphore {
   private active = 0
@@ -93,14 +73,9 @@ class Semaphore {
 
 const semaphore = new Semaphore(MAX_CONCURRENT_COMPILES)
 
-/** Exposed for observability/tests: how many compilations are in flight. */
 export function activeCompilations(): number {
   return semaphore.running
 }
-
-// ---------------------------------------------------------------------------
-// Diagnostics
-// ---------------------------------------------------------------------------
 
 async function readLogExcerpt(dir: string, fallback: string): Promise<string> {
   try {
@@ -120,7 +95,7 @@ async function readLogExcerpt(dir: string, fallback: string): Promise<string> {
 
 /**
  * Compiles the given LaTeX source and resolves with the produced PDF.
- * Throws LaTeXCompileError with a log excerpt on any failure.
+ * Throws LaTeXCompileError (with a log excerpt) on any failure.
  */
 export async function compileLatex(source: string, options: CompileOptions = {}): Promise<Buffer> {
   return semaphore.run(async () => {
@@ -164,10 +139,7 @@ export async function compileLatex(source: string, options: CompileOptions = {})
   })
 }
 
-/**
- * Verifies tectonic is available and able to produce a PDF. Used by tests
- * and health checks; safe to call repeatedly.
- */
+/** Verifies tectonic can produce a PDF; used by tests and health checks. */
 export async function isTectonicAvailable(options: CompileOptions = {}): Promise<boolean> {
   try {
     const pdf = await compileLatex(

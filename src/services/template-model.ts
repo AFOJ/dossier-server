@@ -1,12 +1,8 @@
 /**
  * Builds the view model consumed by the Handlebars templates.
- *
- * Conventions:
- * - Every user-provided string is LaTeX-escaped here, exactly once, then
- *   wrapped in Handlebars.SafeString so templates can use plain
- *   double-stash interpolation without HTML-escaping corrupting it.
- * - Fields ending in `Arg` are macro arguments and include their own
- *   braces, so templates stay free of brace logic.
+ * Every user string is LaTeX-escaped exactly once here, then wrapped in a
+ * SafeString so templates can interpolate with plain double-stash. Fields
+ * ending in `Arg` are macro arguments and include their own braces.
  */
 
 import { SafeString } from "handlebars"
@@ -55,8 +51,8 @@ export function buildHeader(contact: Contact): HeaderViewModel {
   )
 
   return {
-    // Composed here so the template never places a mustache next to a
-    // literal LaTeX brace (a sequence Handlebars cannot parse).
+    // Composed here: a mustache next to a literal LaTeX brace is
+    // unparseable by Handlebars, so brace-heavy lines live in TS.
     nameLine: tex(`\\textbf{\\LARGE {${escapeLatex(contact.full_name)}}}`),
     ...(contacts.length > 0 ? { contactLine: tex(contacts.join(SEP)) } : {}),
     ...(links.length > 0 ? { linksLine: tex(links.join(SEP)) } : {}),
