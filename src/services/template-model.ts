@@ -5,14 +5,17 @@
  * ending in `Arg` are macro arguments and include their own braces.
  */
 
-import { SafeString } from "handlebars"
+import Handlebars from "handlebars"
 
 import { formatDateRange, isPresent } from "../lib/dates.js"
 import { escapeLatex } from "../lib/escape-latex.js"
 import type { Bullet, Contact, ResumePayload, Section } from "../schemas/resume.js"
 
+// handlebars is CommonJS; named imports of its exports fail in Node ESM.
+const { SafeString } = Handlebars
+
 /** A chunk of trusted, pre-escaped LaTeX. */
-export type Tex = SafeString
+export type Tex = InstanceType<typeof SafeString>
 
 const SEP = " · "
 
