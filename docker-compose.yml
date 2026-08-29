@@ -9,3 +9,7 @@ services:
       - ./src/templates:/app/dist/templates:ro
     environment:
       PORT: 3000
+    env_file:
+      # Optional so the compose file works before .env exists.
+      - path: .env
+        required: false

@@ -40,6 +40,10 @@ Compilation happens inside Docker (tectonic + fonts + a pre-warmed package cache
 docker compose up
 ```
 
+```bash
+cp .env.example .env
+```
+
 Then, from a second terminal:
 
 PowerShell:

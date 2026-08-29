@@ -206,7 +206,7 @@ describe("renderResume", () => {
     const tex = renderResume(payloadFixture)
     const used = new Set(
       [...tex.matchAll(/\\usepackage(?:\[[^\]]*\])?\{([^}]*)\}/g)].flatMap((m) =>
-        m[1].split(",").map((p) => p.trim()),
+        m[1]?.split(",").map((p) => p.trim()) ?? [],
       ),
     )
     const warmup = readFileSync(

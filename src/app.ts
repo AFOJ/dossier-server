@@ -1,6 +1,7 @@
 import Fastify from "fastify"
 import { healthRoutes, resumeRoutes } from "./routes/index.js"
 import { registerErrorHandlers } from "./plugins/error-handler.js"
+import { registerCors } from "./plugins/cors.js"
 
 export function buildApp() {
   const app = Fastify({
@@ -14,6 +15,7 @@ export function buildApp() {
     },
   })
 
+  registerCors(app)
   app.register(healthRoutes)
   app.register(resumeRoutes, { prefix: "/api/resumes" })
   registerErrorHandlers(app)
