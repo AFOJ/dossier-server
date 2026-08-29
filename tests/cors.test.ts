@@ -1,13 +1,25 @@
 import { buildApp } from "../src/app.js"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import type { FastifyInstance } from "fastify"
+
+let app: FastifyInstance | undefined
+
+function resetEnv(): void {
+  delete process.env.CORS_ORIGINS
+}
+
+beforeEach(resetEnv)
+afterEach(async () => {
+  resetEnv()
+  if (app) {
+    await app.close()
+    app = undefined
+  }
+})
 
 describe("cors", { timeout: 15000 }, () => {
-  afterEach(() => {
-    delete process.env.CORS_ORIGINS
-  })
-
-  it("refuses cross-origin requests when CORS_ORIGINS is unset", async () => {
-    const app = buildApp()
+  it("omits Access-Control-Allow-Origin when CORS_ORIGINS is unset", async () => {
+    app = buildApp()
 
     const res = await app.inject({
       method: "GET",
@@ -17,12 +29,11 @@ describe("cors", { timeout: 15000 }, () => {
 
     expect(res.statusCode).toBe(200)
     expect(res.headers["access-control-allow-origin"]).toBeUndefined()
-    await app.close()
   })
 
-  it("allows listed origins and answers their preflights", async () => {
+  it("reflects an allow-listed origin and answers its preflights", async () => {
     process.env.CORS_ORIGINS = "https://app.example.com"
-    const app = buildApp()
+    app = buildApp()
 
     const res = await app.inject({
       method: "GET",
@@ -41,13 +52,11 @@ describe("cors", { timeout: 15000 }, () => {
     })
     expect(preflight.statusCode).toBe(204)
     expect(preflight.headers["access-control-allow-methods"]).toContain("POST")
-
-    await app.close()
   })
 
-  it("ignores origins outside the list", async () => {
+  it("omits Access-Control-Allow-Origin for origins outside the list", async () => {
     process.env.CORS_ORIGINS = "https://app.example.com"
-    const app = buildApp()
+    app = buildApp()
 
     const res = await app.inject({
       method: "GET",
@@ -57,6 +66,21 @@ describe("cors", { timeout: 15000 }, () => {
 
     expect(res.statusCode).toBe(200)
     expect(res.headers["access-control-allow-origin"]).toBeUndefined()
-    await app.close()
+  })
+
+  it("omits Access-Control-Allow-Origin on preflights from unlisted origins", async () => {
+    process.env.CORS_ORIGINS = "https://app.example.com"
+    app = buildApp()
+
+    const preflight = await app.inject({
+      method: "OPTIONS",
+      url: "/api/resumes/process",
+      headers: {
+        origin: "https://evil.example.com",
+        "access-control-request-method": "POST",
+      },
+    })
+
+    expect(preflight.headers["access-control-allow-origin"]).toBeUndefined()
   })
 })
