@@ -11,5 +11,13 @@ export function isPresent(value: string | null | undefined): boolean {
 }
 
 export function formatDateRange(start?: string | null, end?: string | null): string {
-  return [start, end].filter(isPresent).join(" - ")
+  const startDate = isPresent(start) ? start! : undefined
+  const endDate = isPresent(end) ? end! : undefined
+
+  if (startDate !== undefined && endDate !== undefined && startDate === endDate) {
+    return startDate
+  }
+
+  const presentDates = [startDate, endDate].filter((date): date is string => date !== undefined)
+  return presentDates.join(" - ")
 }

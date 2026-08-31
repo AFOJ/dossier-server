@@ -26,4 +26,9 @@ describe("formatDateRange", () => {
     expect(formatDateRange(null, undefined)).toBe("")
     expect(formatDateRange()).toBe("")
   })
+
+  it("renders a single date when start and end are the same", () => {
+    expect(formatDateRange("June 2022", "June 2022")).toBe("June 2022")
+    expect(formatDateRange("2025-01-15", "2025-01-15")).toBe("2025-01-15")
+  })
 })
