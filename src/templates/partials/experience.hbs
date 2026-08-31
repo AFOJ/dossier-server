@@ -11,16 +11,18 @@
   {{#each roles}}
     \jobLineItem
     {{roleLineArg}}{{datesArg}}
-    \resumeItemListStart
-    {{#each bullets}}
-      {{#if titleArg}}
-        \resumeItem{{titleArg}}{{textArg}}
-      {{else}}
-        \resumeItemWithoutTitle
-        {{textArg}}
-      {{/if}}
-    {{/each}}
-    \resumeItemListEnd
+    {{#if bullets}}
+      \resumeItemListStart
+      {{#each bullets}}
+        {{#if titleArg}}
+          \resumeItem{{titleArg}}{{textArg}}
+        {{else}}
+          \resumeItemWithoutTitle
+          {{textArg}}
+        {{/if}}
+      {{/each}}
+      \resumeItemListEnd
+    {{/if}}
   {{/each}}
   \resumeSubHeadingListEnd
   {{#unless @last}}

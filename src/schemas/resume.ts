@@ -130,7 +130,7 @@ export const experienceSectionSchema = {
                 end_date: nonEmptyString,
                 bullets: {
                   type: "array",
-                  minItems: 1,
+                  minItems: 0,
                   items: { $ref: "#/definitions/bullet" },
                 },
               },
