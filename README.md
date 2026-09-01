@@ -6,15 +6,18 @@
 
 Right now that means turning a resume payload into a PDF. More is coming.
 
-## Installation
+## Prerequisites
 
-Requires [Node.js](https://nodejs.org), [pnpm](https://pnpm.io) and [Docker](https://www.docker.com).
+- [Node.js](https://nodejs.org) ≥ 22
+- [pnpm](https://pnpm.io) ≥ 10
+- [Docker](https://www.docker.com) + Docker Compose v2
+
+> No local LaTeX installation needed — the Docker image embeds tectonic, fonts, and a pre-warmed package cache.
+
+## Installation
 
 ```bash
 git clone git@github.com:AFOJ/dossier-server.git
-```
-
-```bash
 cd dossier-server
 ```
 
@@ -22,7 +25,32 @@ cd dossier-server
 pnpm install
 ```
 
-## Development
+## Getting Started (Docker)
+
+```bash
+cp .env.example .env
+```
+
+```bash
+docker compose up --build -d
+```
+
+```bash
+curl http://localhost:3000/health
+# {"status":"ok"}
+```
+
+**When to rebuild:** `docker compose up --build -d` after code changes.
+
+**Run in foreground (see logs, Ctrl+C to stop):** `docker compose up`
+
+**Run detached (background):** `docker compose up -d`
+
+## Local Development
+
+```bash
+cp .env.example .env
+```
 
 ```bash
 pnpm dev
@@ -32,31 +60,22 @@ pnpm dev
 pnpm test
 ```
 
-Compilation happens inside Docker (tectonic + fonts + a pre-warmed package cache are baked into the image), so you don't need a LaTeX installation locally.
-
-## Try it
-
 ```bash
-docker compose up
+pnpm typecheck
 ```
 
 ```bash
-cp .env.example .env
+pnpm lint
 ```
 
-Then, from a second terminal:
-
-PowerShell:
-
-```powershell
-Invoke-WebRequest -Uri http://localhost:3000/api/resumes/process -Method Post -ContentType "application/json" -InFile examples/resume-payload.json -OutFile resume.pdf
-```
-
-bash / zsh:
+## Testing
 
 ```bash
-curl -X POST http://localhost:3000/api/resumes/process \
-  -H "Content-Type: application/json" \
-  --data "@examples/resume-payload.json" \
-  --output resume.pdf
+pnpm test
 ```
+
+```bash
+pnpm test:watch
+```
+
+Integration tests require tectonic on `PATH`; otherwise skipped.
