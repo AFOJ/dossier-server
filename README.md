@@ -4,8 +4,6 @@
 
 <p align="center">The server behind <a href="https://github.com/AFOJ/dossier">Dossier</a>, a resume management tool.</p>
 
-Right now that means turning a resume payload into a PDF. More is coming.
-
 ## Prerequisites
 
 - [Node.js](https://nodejs.org) ≥ 22
@@ -40,11 +38,7 @@ curl http://localhost:3000/health
 # {"status":"ok"}
 ```
 
-**When to rebuild:** `docker compose up --build -d` after code changes.
-
-**Run in foreground (see logs, Ctrl+C to stop):** `docker compose up`
-
-**Run detached (background):** `docker compose up -d`
+**Rebuild after code changes:** `docker compose up --build -d`
 
 ## Local Development
 
