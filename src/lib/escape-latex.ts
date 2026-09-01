@@ -20,7 +20,7 @@ const ESCAPE_MAP: Record<string, string> = {
 }
 
 const SPECIAL_CHARS = Object.keys(ESCAPE_MAP)
-  .map((c) => c.replace(/[\\\]^-]/g, "\\$&"))
+  .map((char) => char.replace(/[\\\]^-]/g, "\\$&"))
   .join("")
 
 const SPECIAL_RE = new RegExp(`[${SPECIAL_CHARS}]`, "g")

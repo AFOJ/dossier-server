@@ -109,7 +109,10 @@
       "type": "skills",
       "title": "Skills",
       "groups": [
-        { "title": "Techniques", "items": ["Fermentation", "Whole-animal butchery", "Confectionery", "Wood-fire cookery"] },
+        {
+          "title": "Techniques",
+          "items": ["Fermentation", "Whole-animal butchery", "Confectionery", "Wood-fire cookery"]
+        },
         { "title": "Cuisines", "items": ["Nordic", "Classical French", "Japanese"] }
       ]
     },

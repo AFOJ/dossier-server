@@ -11,9 +11,9 @@ export function registerErrorHandlers(app: FastifyInstance): void {
     if (error.validation) {
       const response = ErrorResponse.validation(
         "Invalid request",
-        error.validation.map((v) => ({
-          path: v.instancePath || "/",
-          message: v.message ?? "is invalid",
+        error.validation.map((validation) => ({
+          path: validation.instancePath || "/",
+          message: validation.message ?? "is invalid",
         })),
       )
       request.log.debug({ details: response.details }, "request validation failed")
