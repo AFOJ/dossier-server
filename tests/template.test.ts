@@ -205,14 +205,11 @@ describe("renderResume", () => {
     // which must therefore load every package the rendered document loads.
     const tex = renderResume(payloadFixture)
     const used = new Set(
-      [...tex.matchAll(/\\usepackage(?:\[[^\]]*\])?\{([^}]*)\}/g)].flatMap((m) =>
-        m[1]?.split(",").map((p) => p.trim()) ?? [],
+      [...tex.matchAll(/\\usepackage(?:\[[^\]]*\])?\{([^}]*)\}/g)].flatMap(
+        (m) => m[1]?.split(",").map((p) => p.trim()) ?? [],
       ),
     )
-    const warmup = readFileSync(
-      new URL("../scripts/warmup.tex", import.meta.url),
-      "utf8",
-    )
+    const warmup = readFileSync(new URL("../scripts/warmup.tex", import.meta.url), "utf8")
     for (const pkg of used) {
       expect(warmup, `scripts/warmup.tex is missing \\usepackage{${pkg}}`).toContain(`{${pkg}}`)
     }
