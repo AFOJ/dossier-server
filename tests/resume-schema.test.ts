@@ -86,13 +86,17 @@ export const validPayload: ResumePayload = {
 }
 
 function paragraphSection(payload: ResumePayload): ParagraphSection {
-  const section = payload.sections.find((s): s is ParagraphSection => s.type === "paragraph")
+  const section = payload.sections.find(
+    (section): section is ParagraphSection => section.type === "paragraph",
+  )
   if (!section) throw new Error("fixture is missing its paragraph section")
   return section
 }
 
 function experienceSection(payload: ResumePayload): ExperienceSection {
-  const section = payload.sections.find((s): s is ExperienceSection => s.type === "experience")
+  const section = payload.sections.find(
+    (section): section is ExperienceSection => section.type === "experience",
+  )
   if (!section) throw new Error("fixture is missing its experience section")
   return section
 }

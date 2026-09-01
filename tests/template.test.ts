@@ -93,7 +93,7 @@ function squash(value: string): string {
 
 describe("renderResume", () => {
   const firstCompany = (p: ResumePayload): ExperienceCompany => {
-    const section = p.sections.find((s) => s.type === "experience")
+    const section = p.sections.find((section) => section.type === "experience")
     if (section?.type !== "experience") throw new Error("missing experience section")
     const company = section.companies[0]
     if (!company) throw new Error("missing experience company")
@@ -206,7 +206,7 @@ describe("renderResume", () => {
     const tex = renderResume(payloadFixture)
     const used = new Set(
       [...tex.matchAll(/\\usepackage(?:\[[^\]]*\])?\{([^}]*)\}/g)].flatMap(
-        (m) => m[1]?.split(",").map((p) => p.trim()) ?? [],
+        (m) => m[1]?.split(",").map((pkg) => pkg.trim()) ?? [],
       ),
     )
     const warmup = readFileSync(new URL("../scripts/warmup.tex", import.meta.url), "utf8")

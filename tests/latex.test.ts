@@ -144,7 +144,7 @@ describe("compileLatex", () => {
     },
   ])("$name", async ({ artifacts, messageFragment, excerptFragment }) => {
     fakeTectonic(artifacts)
-    const error = await compileLatex("source").catch((e) => e)
+    const error = await compileLatex("source").catch((err) => err)
     expect(error).toBeInstanceOf(LaTeXCompileError)
     expect(error.message).toContain(messageFragment)
     if (excerptFragment) {
