@@ -89,10 +89,6 @@ async function readLogExcerpt(dir: string, fallback: string): Promise<string> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Compilation
-// ---------------------------------------------------------------------------
-
 /**
  * Compiles the given LaTeX source and resolves with the produced PDF.
  * Throws LaTeXCompileError (with a log excerpt) on any failure.

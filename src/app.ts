@@ -2,11 +2,11 @@ import Fastify from "fastify"
 import { healthRoutes, resumeRoutes } from "./routes/index.js"
 import { registerErrorHandlers } from "./plugins/error-handler.js"
 import { registerCors } from "./plugins/cors.js"
+import docsRoutes from "./routes/redoc.js"
 
-export function buildApp() {
+export async function buildApp() {
   const app = Fastify({
     logger: true,
-    // Reject unknown properties instead of silently stripping them.
     ajv: {
       customOptions: {
         removeAdditional: false,
@@ -19,6 +19,7 @@ export function buildApp() {
   app.register(healthRoutes)
   app.register(resumeRoutes, { prefix: "/api/resumes" })
   registerErrorHandlers(app)
+  app.register(docsRoutes)
 
   return app
 }

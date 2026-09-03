@@ -204,10 +204,6 @@ export const resumePayloadSchema = {
   },
 } as const
 
-// ---------------------------------------------------------------------------
-// TypeScript types mirroring the schemas above
-// ---------------------------------------------------------------------------
-
 export interface ContactLink {
   label: string
   url: string
