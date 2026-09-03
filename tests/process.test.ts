@@ -32,8 +32,8 @@ beforeEach(() => {
 describe("POST /api/resumes/process", () => {
   let app: FastifyInstance
 
-  beforeAll(() => {
-    app = buildApp()
+  beforeAll(async () => {
+    app = await buildApp()
   })
 
   afterAll(async () => {

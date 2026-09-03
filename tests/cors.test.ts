@@ -19,7 +19,7 @@ afterEach(async () => {
 
 describe("cors", { timeout: 15000 }, () => {
   it("omits Access-Control-Allow-Origin when CORS_ORIGINS is unset", async () => {
-    app = buildApp()
+    app = await buildApp()
 
     const res = await app.inject({
       method: "GET",
@@ -33,7 +33,7 @@ describe("cors", { timeout: 15000 }, () => {
 
   it("reflects an allow-listed origin and answers its preflights", async () => {
     process.env.CORS_ORIGINS = "https://app.example.com"
-    app = buildApp()
+    app = await buildApp()
 
     const res = await app.inject({
       method: "GET",
@@ -56,7 +56,7 @@ describe("cors", { timeout: 15000 }, () => {
 
   it("omits Access-Control-Allow-Origin for origins outside the list", async () => {
     process.env.CORS_ORIGINS = "https://app.example.com"
-    app = buildApp()
+    app = await buildApp()
 
     const res = await app.inject({
       method: "GET",
@@ -70,7 +70,7 @@ describe("cors", { timeout: 15000 }, () => {
 
   it("omits Access-Control-Allow-Origin on preflights from unlisted origins", async () => {
     process.env.CORS_ORIGINS = "https://app.example.com"
-    app = buildApp()
+    app = await buildApp()
 
     const preflight = await app.inject({
       method: "OPTIONS",

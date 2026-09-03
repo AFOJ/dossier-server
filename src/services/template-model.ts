@@ -64,10 +64,6 @@ export function buildHeader(contact: Contact): HeaderViewModel {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Sections
-// ---------------------------------------------------------------------------
-
 export interface ParagraphSectionViewModel {
   type: "paragraph"
   titleArg: Tex
@@ -197,10 +193,6 @@ function buildSection(section: Section): SectionViewModel {
       }
   }
 }
-
-// ---------------------------------------------------------------------------
-// Root view model
-// ---------------------------------------------------------------------------
 
 export interface ResumeViewModel {
   header: HeaderViewModel

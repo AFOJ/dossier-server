@@ -5,8 +5,8 @@ import type { FastifyInstance } from "fastify"
 describe("app", () => {
   let app: FastifyInstance
 
-  beforeAll(() => {
-    app = buildApp()
+  beforeAll(async () => {
+    app = await buildApp()
   })
 
   afterAll(async () => {
