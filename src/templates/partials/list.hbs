@@ -1,0 +1,18 @@
+\section{{titleArg}}
+\resumeSubHeadingListStart
+{{#each items}}
+  {{#if titleArg}}
+    {{#if titleUrlArg}}
+      \resumeSubItemLink{{titleUrlArg}}{{titleArg}}{{descriptionArg}}
+    {{else}}
+      \resumeSubItem{{titleArg}}{{descriptionArg}}
+    {{/if}}
+  {{else}}
+    {{#if titleUrlArg}}
+      \resumeItemWithoutTitle\href{{titleUrlArg}}{{descriptionArg}}
+    {{else}}
+      \resumeItemWithoutTitle{{descriptionArg}}
+    {{/if}}
+  {{/if}}
+{{/each}}
+\resumeSubHeadingListEnd
