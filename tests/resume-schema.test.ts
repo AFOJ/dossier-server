@@ -234,13 +234,13 @@ describe("resumePayloadSchema", () => {
       expect(validate(payload)).toBe(true)
     })
 
-    it("accepts list item with URL but no title (renders URL as link text)", () => {
+    it("rejects list item with URL but no title", () => {
       const payload = structuredClone(baseListPayload)
       const listSection = payload.sections[0] as ListSection
       listSection.items = [
         { url: "https://example.com", description: "Project with URL only.", date: "2023" },
       ]
-      expect(validate(payload)).toBe(true)
+      expect(validate(payload)).toBe(false)
     })
 
     it("rejects list section missing description", () => {

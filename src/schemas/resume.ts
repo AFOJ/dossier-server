@@ -178,6 +178,8 @@ export const listItemSchema = {
     description: nonEmptyString,
     date: nonEmptyString,
   },
+  if: { required: ["url"] },
+  then: { required: ["title"] },
 } as const
 
 export const listSectionSchema = {
