@@ -219,8 +219,8 @@ function buildSection(section: Section): SectionViewModel {
                   ...(item.url ? { titleUrlArg: arg(item.url) } : {}),
                 }
               : item.url
-              ? { titleArg: arg(item.url), titleUrlArg: arg(item.url) }
-              : {}),
+                ? { titleArg: arg(item.url), titleUrlArg: arg(item.url) }
+                : {}),
             descriptionArg: arg(descWithDate),
           }
         }),

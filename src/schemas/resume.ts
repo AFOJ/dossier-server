@@ -321,7 +321,8 @@ export interface ExperienceSection {
   companies: ExperienceCompany[]
 }
 
-export type Section = ParagraphSection | EducationSection | SkillsSection | ExperienceSection | ListSection
+export type Section =
+  ParagraphSection | EducationSection | SkillsSection | ExperienceSection | ListSection
 
 export interface ResumePayload {
   title: string

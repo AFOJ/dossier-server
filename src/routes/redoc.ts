@@ -200,13 +200,15 @@ const EXAMPLE_RESUME = {
         {
           title: "Flux Design System",
           url: "https://github.com/AFOJ/flux-design-system",
-          description: "Multi-theme design system with automated Figma-to-CSS token pipeline and accessibility-first Storybook component library.",
+          description:
+            "Multi-theme design system with automated Figma-to-CSS token pipeline and accessibility-first Storybook component library.",
           date: "2026",
         },
         {
           title: "Ask Airspeed",
           url: "https://github.com/AFOJ/ask-airspeed",
-          description: "Natural language interface for querying sales call history with intent-driven API orchestration.",
+          description:
+            "Natural language interface for querying sales call history with intent-driven API orchestration.",
           date: "2026",
         },
       ],
