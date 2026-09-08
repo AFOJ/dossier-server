@@ -4,6 +4,7 @@ import {
   resumePayloadSchema,
   type ExperienceCompany,
   type ExperienceSection,
+  type ListSection,
   type ParagraphSection,
   type ResumePayload,
 } from "../src/schemas/resume.js"
@@ -200,5 +201,69 @@ describe("resumePayloadSchema", () => {
       bullets: [{ type: "text", text: "Did things." }],
     })
     expect(validate(payload)).toBe(true)
+  })
+
+  describe("list section", () => {
+    const baseListPayload: ResumePayload = {
+      title: "Resume",
+      contact: { full_name: "John Doe" },
+      sections: [
+        {
+          type: "list",
+          title: "Projects",
+          items: [
+            {
+              title: "Project One",
+              url: "https://example.com/project1",
+              description: "A great project.",
+              date: "2023",
+            },
+          ],
+        },
+      ],
+    }
+
+    it("accepts a valid list section with all fields", () => {
+      expect(validate(baseListPayload)).toBe(true)
+    })
+
+    it("accepts list section with only required description", () => {
+      const payload = structuredClone(baseListPayload)
+      const listSection = payload.sections[0] as ListSection
+      listSection.items = [{ description: "Just a description." }]
+      expect(validate(payload)).toBe(true)
+    })
+
+    it("rejects list item with URL but no title", () => {
+      const payload = structuredClone(baseListPayload)
+      const listSection = payload.sections[0] as ListSection
+      listSection.items = [
+        { url: "https://example.com", description: "Project with URL only.", date: "2023" },
+      ]
+      expect(validate(payload)).toBe(false)
+    })
+
+    it("rejects list section missing description", () => {
+      const payload = structuredClone(baseListPayload)
+      const listSection = payload.sections[0] as ListSection
+      // @ts-expect-error testing invalid
+      delete listSection.items[0].description
+      expect(validate(payload)).toBe(false)
+    })
+
+    it("rejects list section with unknown property in item", () => {
+      const payload = structuredClone(baseListPayload)
+      const listSection = payload.sections[0] as ListSection
+      // @ts-expect-error testing invalid
+      listSection.items[0].unknown_field = "oops"
+      expect(validate(payload)).toBe(false)
+    })
+
+    it("rejects empty items array", () => {
+      const payload = structuredClone(baseListPayload)
+      const listSection = payload.sections[0] as ListSection
+      listSection.items = []
+      expect(validate(payload)).toBe(false)
+    })
   })
 })

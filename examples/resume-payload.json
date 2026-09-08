@@ -130,6 +130,35 @@
           "paragraph": "Final-term internship staged at a two-star brigade in Lyon."
         }
       ]
+    },
+    {
+      "type": "list",
+      "title": "Projects",
+      "items": [
+        {
+          "title": "Fermentation Monitor",
+          "url": "https://github.com/alexmoreau/fermentation-monitor",
+          "description": "IoT sensor dashboard for real-time fermentation tracking (temperature, pH, CO2) with alerting via MQTT. Built with Raspberry Pi, Python, and Grafana.",
+          "date": "2024"
+        }
+      ]
+    },
+    {
+      "type": "list",
+      "title": "Talks",
+      "items": [
+        {
+          "title": "Scaling Fermentation in Restaurant Kitchens",
+          "url": "https://youtu.be/fermentation-scaling-talk",
+          "description": "Presented at Nordic Food Tech Conference on managing 200+ concurrent ferments in a high-volume kitchen environment.",
+          "date": "March 2024"
+        },
+        {
+          "title": "Zero-Waste Menu Design",
+          "description": "Workshop at Copenhagen Culinary Institute on designing tasting menus that utilise 100% of ingredient byproducts through fermentation and preservation.",
+          "date": "November 2023"
+        }
+      ]
     }
   ]
 }

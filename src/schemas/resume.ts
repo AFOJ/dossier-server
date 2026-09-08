@@ -168,12 +168,38 @@ export const bulletSchema = {
   ],
 } as const
 
+export const listItemSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["description"],
+  properties: {
+    title: nonEmptyString,
+    url: nonEmptyString,
+    description: nonEmptyString,
+    date: nonEmptyString,
+  },
+  if: { required: ["url"] },
+  then: { required: ["title"] },
+} as const
+
+export const listSectionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "title", "items"],
+  properties: {
+    type: { const: "list" },
+    title: nonEmptyString,
+    items: { type: "array", minItems: 1, items: { $ref: "#/definitions/listItem" } },
+  },
+} as const
+
 export const sectionSchema = {
   oneOf: [
     { $ref: "#/definitions/paragraphSection" },
     { $ref: "#/definitions/educationSection" },
     { $ref: "#/definitions/skillsSection" },
     { $ref: "#/definitions/experienceSection" },
+    { $ref: "#/definitions/listSection" },
   ],
 } as const
 
@@ -201,6 +227,8 @@ export const resumePayloadSchema = {
     skillsSection: skillsSectionSchema,
     experienceSection: experienceSectionSchema,
     bullet: bulletSchema,
+    listItem: listItemSchema,
+    listSection: listSectionSchema,
   },
 } as const
 
@@ -255,6 +283,19 @@ export interface SkillsSection {
 export type Bullet =
   { type: "text"; text: string } | { type: "text-with-title"; title: string; text: string }
 
+export interface ListItem {
+  title?: string
+  url?: string
+  description: string
+  date?: string
+}
+
+export interface ListSection {
+  type: "list"
+  title: string
+  items: ListItem[]
+}
+
 export interface ExperienceRole {
   job_title: string
   employment_type?: string
@@ -280,7 +321,8 @@ export interface ExperienceSection {
   companies: ExperienceCompany[]
 }
 
-export type Section = ParagraphSection | EducationSection | SkillsSection | ExperienceSection
+export type Section =
+  ParagraphSection | EducationSection | SkillsSection | ExperienceSection | ListSection
 
 export interface ResumePayload {
   title: string

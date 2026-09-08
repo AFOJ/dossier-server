@@ -193,6 +193,44 @@ const EXAMPLE_RESUME = {
         },
       ],
     },
+    {
+      type: "list",
+      title: "Projects",
+      items: [
+        {
+          title: "Flux Design System",
+          url: "https://github.com/AFOJ/flux-design-system",
+          description:
+            "Multi-theme design system with automated Figma-to-CSS token pipeline and accessibility-first Storybook component library.",
+          date: "2026",
+        },
+        {
+          title: "Ask Airspeed",
+          url: "https://github.com/AFOJ/ask-airspeed",
+          description:
+            "Natural language interface for querying sales call history with intent-driven API orchestration.",
+          date: "2026",
+        },
+      ],
+    },
+    {
+      type: "list",
+      title: "Talks",
+      items: [
+        {
+          title: "Next i18n: Performant, Rich Translations in Next.js",
+          url: "https://youtu.be/tq9MfIG-VXw?t=14526",
+          description: "JS@PayPal Worldwide Virtual Conference",
+          date: "2021",
+        },
+        {
+          title: "A QuickStart™ Guide to Making Things on the Internet",
+          url: "https://www.youtube.com/watch?v=6EHbfAmA_0c",
+          description: "Google Women Techmakers Montreal",
+          date: "2016",
+        },
+      ],
+    },
   ],
 }
 

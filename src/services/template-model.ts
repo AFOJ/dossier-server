@@ -119,11 +119,25 @@ export interface ExperienceSectionViewModel {
   companies: ExperienceCompanyViewModel[]
 }
 
+export interface ListItemViewModel {
+  titleArg?: Tex
+  titleUrlArg?: Tex
+  descriptionArg: Tex
+  dateArg?: Tex
+}
+
+export interface ListSectionViewModel {
+  type: "list"
+  titleArg: Tex
+  items: ListItemViewModel[]
+}
+
 export type SectionViewModel =
   | ParagraphSectionViewModel
   | EducationSectionViewModel
   | SkillsSectionViewModel
   | ExperienceSectionViewModel
+  | ListSectionViewModel
 
 function buildBullet(bullet: Bullet): ExperienceBulletViewModel {
   if (bullet.type === "text-with-title") {
@@ -190,6 +204,26 @@ function buildSection(section: Section): SectionViewModel {
             bullets: role.bullets.map(buildBullet),
           })),
         })),
+      }
+
+    case "list":
+      return {
+        type: "list",
+        titleArg: arg(section.title),
+        items: section.items.map((item) => {
+          const descWithDate = item.date ? `${item.description} (${item.date})` : item.description
+          return {
+            ...(item.title
+              ? {
+                  titleArg: arg(item.title),
+                  ...(item.url ? { titleUrlArg: arg(item.url) } : {}),
+                }
+              : item.url
+                ? { titleArg: arg(item.url), titleUrlArg: arg(item.url) }
+                : {}),
+            descriptionArg: arg(descWithDate),
+          }
+        }),
       }
   }
 }
