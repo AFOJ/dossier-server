@@ -266,7 +266,9 @@ function buildContactLine(contact: CLContact): string | undefined {
 export function buildCoverLetterViewModel(payload: CoverLetterPayload): CoverLetterViewModel {
   const contactLine = buildContactLine(payload.contact)
   return {
-    nameLine: tex(`\\begin{center}{\\LARGE \\textbf{${escapeLatex(payload.contact.full_name)}}}\\end{center}`),
+    nameLine: tex(
+      `\\begin{center}{\\LARGE \\textbf{${escapeLatex(payload.contact.full_name)}}}\\end{center}`,
+    ),
     ...(contactLine ? { contactLine: tex(`\\begin{center}${contactLine}\\end{center}`) } : {}),
     dateLine: tex(escapeLatex(payload.date)),
     ...(payload.subject ? { subjectLine: tex(`\\textbf{${escapeLatex(payload.subject)}}`) } : {}),

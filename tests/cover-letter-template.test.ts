@@ -70,9 +70,15 @@ describe("renderCoverLetter", () => {
     const tex = squash(renderCoverLetter(basePayload))
     // uses \noindent for each paragraph
     expect(tex).toContain("\\noindent Dear Hiring Manager, \\\\[6pt]")
-    expect(tex).toContain("\\noindent I am writing to express my interest in the Senior Engineer position at Acme Corp. With 8 years of experience \\& a focus on R\\&D, I am confident I can contribute immediately. \\\\[6pt]")
-    expect(tex).toContain("\\noindent In my current role at TechCorp, I led the migration to microservices, reducing deployment time by 70\\% and improving system reliability. I also mentored 5 junior engineers. \\\\[6pt]")
-    expect(tex).toContain("\\noindent I would welcome the opportunity to discuss how my background aligns with Acme's goals. Thank you for your time and consideration. \\\\[6pt]")
+    expect(tex).toContain(
+      "\\noindent I am writing to express my interest in the Senior Engineer position at Acme Corp. With 8 years of experience \\& a focus on R\\&D, I am confident I can contribute immediately. \\\\[6pt]",
+    )
+    expect(tex).toContain(
+      "\\noindent In my current role at TechCorp, I led the migration to microservices, reducing deployment time by 70\\% and improving system reliability. I also mentored 5 junior engineers. \\\\[6pt]",
+    )
+    expect(tex).toContain(
+      "\\noindent I would welcome the opportunity to discuss how my background aligns with Acme's goals. Thank you for your time and consideration. \\\\[6pt]",
+    )
   })
 
   it("renders closing and signature", () => {
@@ -88,7 +94,9 @@ describe("renderCoverLetter", () => {
     }
     const tex = squash(renderCoverLetter(payload))
     // escape-latex uses \textasciitilde{} and \textasciicircum{} for ~ and ^
-    expect(tex).toContain("\\& \\% \\$ \\# \\_ \\{ \\} \\textasciitilde{} \\textasciicircum{} \\textbackslash{}")
+    expect(tex).toContain(
+      "\\& \\% \\$ \\# \\_ \\{ \\} \\textasciitilde{} \\textasciicircum{} \\textbackslash{}",
+    )
   })
 
   it("omits contact line when no email/phone/location", () => {
