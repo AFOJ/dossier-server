@@ -27,3 +27,7 @@ npm-debug.log*
 
 # Generated resumes
 resume.pdf
+cover-letter.pdf
+
+# Local test payloads
+cover-letter-payload.json

@@ -10,6 +10,7 @@ import Handlebars from "handlebars"
 import { formatDateRange, isPresent } from "../lib/dates.js"
 import { escapeLatex } from "../lib/escape-latex.js"
 import type { Bullet, Contact, ResumePayload, Section } from "../schemas/resume.js"
+import type { Contact as CLContact, CoverLetterPayload } from "../schemas/cover-letter.js"
 
 // handlebars is CommonJS; named imports of its exports fail in Node ESM.
 const { SafeString } = Handlebars
@@ -237,5 +238,42 @@ export function buildViewModel(payload: ResumePayload): ResumeViewModel {
   return {
     header: buildHeader(payload.contact),
     sections: payload.sections.map(buildSection),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cover Letter
+// ---------------------------------------------------------------------------
+
+export interface CoverLetterViewModel {
+  nameLine: Tex
+  contactLine?: Tex
+  dateLine: Tex
+  subjectLine?: Tex
+  bodyParagraphs: Tex[]
+  closingLine: Tex
+  signatureLine: Tex
+}
+
+function buildContactLine(contact: CLContact): string | undefined {
+  const parts: string[] = []
+  if (contact.email) parts.push(`\\texttt{${escapeLatex(contact.email)}}`)
+  if (contact.phone) parts.push(`\\texttt{${escapeLatex(contact.phone)}}`)
+  if (contact.location) parts.push(`\\texttt{${escapeLatex(contact.location)}}`)
+  return parts.length > 0 ? parts.join(SEP) : undefined
+}
+
+export function buildCoverLetterViewModel(payload: CoverLetterPayload): CoverLetterViewModel {
+  const contactLine = buildContactLine(payload.contact)
+  return {
+    nameLine: tex(
+      `\\begin{center}{\\LARGE \\textbf{${escapeLatex(payload.contact.full_name)}}}\\end{center}`,
+    ),
+    ...(contactLine ? { contactLine: tex(`\\begin{center}${contactLine}\\end{center}`) } : {}),
+    dateLine: tex(escapeLatex(payload.date)),
+    ...(payload.subject ? { subjectLine: tex(`\\textbf{${escapeLatex(payload.subject)}}`) } : {}),
+    bodyParagraphs: payload.body.map((p) => tex(escapeLatex(p))),
+    closingLine: tex(escapeLatex(payload.closing)),
+    signatureLine: tex(escapeLatex(payload.contact.full_name)),
   }
 }

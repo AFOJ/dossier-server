@@ -12,7 +12,8 @@ import { fileURLToPath } from "node:url"
 import Handlebars from "handlebars"
 
 import type { ResumePayload } from "../schemas/resume.js"
-import { buildViewModel } from "./template-model.js"
+import type { CoverLetterPayload } from "../schemas/cover-letter.js"
+import { buildViewModel, buildCoverLetterViewModel } from "./template-model.js"
 
 const templatesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "templates")
 
@@ -44,4 +45,28 @@ function compileTemplate(): HandlebarsTemplateDelegate {
 export function renderResume(payload: ResumePayload): string {
   compiledTemplate ??= compileTemplate()
   return compiledTemplate(buildViewModel(payload))
+}
+
+let compiledCoverLetterTemplate: HandlebarsTemplateDelegate | null = null
+
+function compileCoverLetterTemplate(): HandlebarsTemplateDelegate {
+  const partialsDir = path.join(templatesDir, "partials")
+  for (const file of fs.readdirSync(partialsDir)) {
+    if (!file.endsWith(".hbs")) continue
+    const name = path.basename(file, ".hbs")
+    Handlebars.registerPartial(name, fs.readFileSync(path.join(partialsDir, file), "utf8"))
+  }
+
+  Handlebars.registerHelper("or", (...args: unknown[]) => {
+    args.pop()
+    return args.some(Boolean)
+  })
+
+  const source = fs.readFileSync(path.join(templatesDir, "cover-letter.hbs"), "utf8")
+  return Handlebars.compile(source)
+}
+
+export function renderCoverLetter(payload: CoverLetterPayload): string {
+  compiledCoverLetterTemplate ??= compileCoverLetterTemplate()
+  return compiledCoverLetterTemplate(buildCoverLetterViewModel(payload))
 }
