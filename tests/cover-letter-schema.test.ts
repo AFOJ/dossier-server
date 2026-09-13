@@ -6,20 +6,17 @@ const ajv = new Ajv({ strict: false })
 const validate = ajv.compile<CoverLetterPayload>(coverLetterPayloadSchema)
 
 const validPayload: CoverLetterPayload = {
+  title: "Backend Engineer — Acme Corp",
   contact: {
-    full_name: "John Doe",
-    email: "john@example.com",
-    phone: "+1 555 0100",
-    location: "Berlin, DE",
+    full_name: "Jane Doe",
+    role: "Backend Engineer",
+    email: "jane.doe@example.com",
+    location: "London, UK",
   },
-  date: "September 10, 2026",
-  subject: "Re: Application for Senior Engineer",
-  body: [
-    "Dear Hiring Manager,",
-    "I am writing to express my interest in the position.",
-    "Thank you for your consideration.",
-  ],
-  closing: "Sincerely,",
+  date: "2026-09-12",
+  subject: "Application for Backend Engineer (Ref: BE-2026-042)",
+  body: "<p>Dear Hiring Manager,</p><p>I am writing to apply for the <strong>backend engineer</strong> role.</p>",
+  signoff: "Yours sincerely,",
 }
 
 function omit<T, K extends keyof T>(obj: T, key: K): Omit<T, K> {
@@ -33,40 +30,51 @@ describe("coverLetterPayloadSchema", () => {
   })
 
   it("rejects missing contact", () => {
-    const payload = omit(validPayload, "contact")
-    expect(validate(payload)).toBe(false)
+    expect(validate(omit(validPayload, "contact"))).toBe(false)
   })
 
   it("rejects missing full_name in contact", () => {
     const payload = {
       ...validPayload,
-      contact: { email: "john@example.com" },
+      contact: { email: "jane@example.com" },
     }
     expect(validate(payload)).toBe(false)
   })
 
-  it("rejects missing date", () => {
-    const payload = omit(validPayload, "date")
-    expect(validate(payload)).toBe(false)
-  })
-
   it("rejects missing body", () => {
-    const payload = omit(validPayload, "body")
+    expect(validate(omit(validPayload, "body"))).toBe(false)
+  })
+
+  it("rejects an empty body string", () => {
+    expect(validate({ ...validPayload, body: "   " })).toBe(false)
+  })
+
+  it("rejects the legacy body array shape", () => {
+    const payload = { ...validPayload, body: ["Dear Hiring Manager,"] }
     expect(validate(payload)).toBe(false)
   })
 
-  it("rejects empty body array", () => {
-    const payload = { ...validPayload, body: [] }
+  it("rejects the legacy closing field", () => {
+    const payload = { ...validPayload, closing: "Sincerely," }
     expect(validate(payload)).toBe(false)
   })
 
-  it("rejects missing closing", () => {
-    const payload = omit(validPayload, "closing")
-    expect(validate(payload)).toBe(false)
+  it("accepts missing title, date, subject, and signoff", () => {
+    const payload = {
+      contact: { full_name: "Jane Doe" },
+      body: "<p>Hello.</p>",
+    }
+    expect(validate(payload)).toBe(true)
   })
 
-  it("accepts optional subject", () => {
-    const payload = omit(validPayload, "subject")
+  it("accepts null title, date, subject, and signoff", () => {
+    const payload = {
+      ...validPayload,
+      title: null,
+      date: null,
+      subject: null,
+      signoff: null,
+    }
     expect(validate(payload)).toBe(true)
   })
 
@@ -76,6 +84,17 @@ describe("coverLetterPayloadSchema", () => {
       contact: { full_name: "Jane Smith" },
     }
     expect(validate(payload)).toBe(true)
+  })
+
+  it("rejects contact links (not rendered on cover letters)", () => {
+    const payload = {
+      ...validPayload,
+      contact: {
+        ...validPayload.contact,
+        links: [{ label: "GitHub", url: "https://github.com/janedoe" }],
+      },
+    }
+    expect(validate(payload)).toBe(false)
   })
 
   it("rejects unknown fields", () => {

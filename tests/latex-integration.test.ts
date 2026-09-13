@@ -104,21 +104,18 @@ describe.skipIf(!tectonicReady)("LaTeX integration (real tectonic)", () => {
 
 // Cover letter fixture
 const coverLetterPayload: CoverLetterPayload = {
+  title: "Backend Engineer — Acme Corp",
   contact: {
     full_name: "John Doe",
+    role: "Backend Engineer",
     email: "john@example.com",
     phone: "+1 555 0100",
     location: "Berlin, DE",
   },
   date: "September 10, 2026",
   subject: "Re: Application for Senior Engineer",
-  body: [
-    "Dear Hiring Manager,",
-    "I am writing to express my interest in the Senior Engineer position at Acme Corp. With 8 years of experience & a focus on R&D, I am confident I can contribute immediately.",
-    "In my current role at TechCorp, I led the migration to microservices, reducing deployment time by 70% and improving system reliability. I also mentored 5 junior engineers.",
-    "I would welcome the opportunity to discuss how my background aligns with Acme's goals. Thank you for your time and consideration.",
-  ],
-  closing: "Sincerely,",
+  body: '<p>Dear Hiring Manager,</p><p>I am writing to express my interest in the <strong>Senior Engineer</strong> position at Acme Corp. With 8 years of experience &amp; a focus on R&amp;D, I am confident I can contribute immediately.</p><p>See my work at <a href="https://github.com/johndoe">my GitHub</a>.</p><p>I would welcome the opportunity to discuss how my background aligns with Acme\'s goals. Thank you for your time and consideration.</p>',
+  signoff: "Sincerely,",
 }
 
 describe.skipIf(!tectonicReady)("Cover letter integration (real tectonic)", () => {
