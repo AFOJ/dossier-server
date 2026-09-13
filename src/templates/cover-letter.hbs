@@ -13,10 +13,11 @@
 \begin{document}
 
 {{nameLine}}
+{{#if roleLine}}{{roleLine}}{{/if}}
 {{#if contactLine}}{{contactLine}}{{/if}}
 \vspace{4pt}\hrule\vspace{12pt}
 
-\noindent {{dateLine}} \\[6pt]
+{{#if dateLine}}\noindent {{dateLine}} \\[6pt]{{/if}}
 {{#if subjectLine}}\noindent {{subjectLine}} \\[12pt]{{/if}}
 
 {{#each bodyParagraphs}}
@@ -24,7 +25,7 @@
 {{/each}}
 
 \vspace{12pt}
-\noindent {{closingLine}} \\
-\noindent {{signatureLine}}
+{{#if signoffLine}}\noindent {{signoffLine}} \\
+\noindent {{signatureLine}}{{/if}}
 
 \end{document}

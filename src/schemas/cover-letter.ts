@@ -1,14 +1,8 @@
 // Must contain at least one non-whitespace character, so " " fails too.
 const nonEmptyString = { type: "string", minLength: 1, pattern: "\\S" }
 
-export const contactLinkSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["label", "url"],
-  properties: {
-    label: nonEmptyString,
-    url: nonEmptyString,
-  },
+export const nullableNonEmptyString = {
+  anyOf: [nonEmptyString, { type: "null" }],
 } as const
 
 export const contactSchema = {
@@ -21,11 +15,6 @@ export const contactSchema = {
     email: nonEmptyString,
     phone: nonEmptyString,
     location: nonEmptyString,
-    links: {
-      type: "array",
-      minItems: 1,
-      items: { $ref: "#/definitions/contactLink" },
-    },
   },
 } as const
 
@@ -34,29 +23,22 @@ export const coverLetterPayloadSchema = {
   $schema: "http://json-schema.org/draft-07/schema#",
   type: "object",
   additionalProperties: false,
-  required: ["contact", "date", "body", "closing"],
+  required: ["contact", "body"],
   properties: {
+    // Accepted for FE compatibility; ignored when rendering the PDF.
+    title: nullableNonEmptyString,
     contact: { $ref: "#/definitions/contact" },
-    date: nonEmptyString,
-    subject: nonEmptyString,
-    body: {
-      type: "array",
-      minItems: 1,
-      items: nonEmptyString,
-    },
-    closing: nonEmptyString,
+    date: nullableNonEmptyString,
+    subject: nullableNonEmptyString,
+    // Single rich-text HTML string from the editor (e.g. TipTap).
+    body: nonEmptyString,
+    signoff: nullableNonEmptyString,
   },
 
   definitions: {
-    contactLink: contactLinkSchema,
     contact: contactSchema,
   },
 } as const
-
-export interface ContactLink {
-  label: string
-  url: string
-}
 
 export interface Contact {
   full_name: string
@@ -64,13 +46,15 @@ export interface Contact {
   email?: string
   phone?: string
   location?: string
-  links?: ContactLink[]
 }
 
 export interface CoverLetterPayload {
+  /** Accepted for FE compatibility; ignored when rendering. */
+  title?: string | null
   contact: Contact
-  date: string
-  subject?: string
-  body: string[]
-  closing: string
+  date?: string | null
+  subject?: string | null
+  /** Rich-text HTML string from the editor. */
+  body: string
+  signoff?: string | null
 }
