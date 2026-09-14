@@ -3,30 +3,21 @@ import { renderCoverLetter } from "../src/services/template.js"
 import type { CoverLetterPayload } from "../src/schemas/cover-letter.js"
 
 const basePayload: CoverLetterPayload = {
+  title: "Backend Engineer — Acme Corp",
   contact: {
-    full_name: "John Doe",
-    email: "john@example.com",
-    phone: "+1 555 0100",
-    location: "Berlin, DE",
+    full_name: "Jane Doe",
+    role: "Backend Engineer",
+    email: "jane.doe@example.com",
+    location: "London, UK",
   },
-  date: "September 10, 2026",
-  subject: "Re: Application for Senior Engineer",
-  body: [
-    "Dear Hiring Manager,",
-    "I am writing to express my interest in the Senior Engineer position at Acme Corp. With 8 years of experience & a focus on R&D, I am confident I can contribute immediately.",
-    "In my current role at TechCorp, I led the migration to microservices, reducing deployment time by 70% and improving system reliability. I also mentored 5 junior engineers.",
-    "I would welcome the opportunity to discuss how my background aligns with Acme's goals. Thank you for your time and consideration.",
-  ],
-  closing: "Sincerely,",
+  date: "2026-09-12",
+  subject: "Application for Backend Engineer (Ref: BE-2026-042)",
+  body: '<p>Dear Hiring Manager,</p><p>I was excited to see your posting for a <strong>backend engineer</strong> with payments experience.</p><p>First I cut p99 latency 40% on our <a href="https://example.com/case-study?ref=letter&amp;utm=1">settlement pipeline</a>; second, you can reach me <a href="mailto:jane.doe@example.com">by email</a>.</p><p>Markup I typed as plain text renders literally: &lt;div&gt;.</p><p><br></p><p>An empty paragraph sits above this line, and<br>this breaks mid-paragraph.</p>',
+  signoff: "Yours sincerely,",
 }
 
 function squash(value: string): string {
   return value.replace(/\s+/g, " ")
-}
-
-function omit<T, K extends keyof T>(obj: T, key: K): Omit<T, K> {
-  const { [key]: _, ...rest } = obj
-  return rest
 }
 
 describe("renderCoverLetter", () => {
@@ -39,58 +30,67 @@ describe("renderCoverLetter", () => {
 
   it("renders centered name in bold LARGE", () => {
     const tex = squash(renderCoverLetter(basePayload))
-    expect(tex).toContain("\\begin{center}{\\LARGE \\textbf{John Doe}}\\end{center}")
+    expect(tex).toContain("\\begin{center}{\\LARGE \\textbf{Jane Doe}}\\end{center}")
   })
 
-  it("renders centered contact line with email, phone, location", () => {
+  it("renders role under the name", () => {
     const tex = squash(renderCoverLetter(basePayload))
-    expect(tex).toContain("\\begin{center}")
-    expect(tex).toContain("\\texttt{john@example.com}")
-    expect(tex).toContain("\\texttt{+1 555 0100}")
-    expect(tex).toContain("\\texttt{Berlin, DE}")
-    expect(tex).toContain("\\end{center}")
+    expect(tex).toContain("\\begin{center}\\textit{Backend Engineer}\\end{center}")
   })
 
-  it("renders hrule divider after contact", () => {
+  it("renders contact row with hyperlinked email and location", () => {
+    const tex = squash(renderCoverLetter(basePayload))
+    expect(tex).toContain("\\texttt{\\href{mailto:jane.doe@example.com}{jane.doe@example.com}}")
+    expect(tex).toContain("\\texttt{London, UK}")
+  })
+
+  it("renders hrule divider after the header", () => {
     const tex = squash(renderCoverLetter(basePayload))
     expect(tex).toContain("\\vspace{4pt}\\hrule\\vspace{12pt}")
   })
 
   it("renders date line", () => {
     const tex = squash(renderCoverLetter(basePayload))
-    expect(tex).toContain("\\noindent September 10, 2026 \\\\[6pt]")
+    expect(tex).toContain("\\noindent 2026-09-12 \\\\[6pt]")
   })
 
   it("renders subject line in bold", () => {
     const tex = squash(renderCoverLetter(basePayload))
-    expect(tex).toContain("\\noindent \\textbf{Re: Application for Senior Engineer} \\\\[12pt]")
+    expect(tex).toContain(
+      "\\noindent \\textbf{Application for Backend Engineer (Ref: BE-2026-042)} \\\\[12pt]",
+    )
   })
 
-  it("renders body paragraphs", () => {
+  it("renders body paragraphs with bold and links", () => {
     const tex = squash(renderCoverLetter(basePayload))
-    // uses \noindent for each paragraph
     expect(tex).toContain("\\noindent Dear Hiring Manager, \\\\[6pt]")
+    expect(tex).toContain("\\textbf{backend engineer}")
     expect(tex).toContain(
-      "\\noindent I am writing to express my interest in the Senior Engineer position at Acme Corp. With 8 years of experience \\& a focus on R\\&D, I am confident I can contribute immediately. \\\\[6pt]",
+      "\\href{https://example.com/case-study?ref=letter\\&utm=1}{settlement pipeline}",
     )
-    expect(tex).toContain(
-      "\\noindent In my current role at TechCorp, I led the migration to microservices, reducing deployment time by 70\\% and improving system reliability. I also mentored 5 junior engineers. \\\\[6pt]",
-    )
-    expect(tex).toContain(
-      "\\noindent I would welcome the opportunity to discuss how my background aligns with Acme's goals. Thank you for your time and consideration. \\\\[6pt]",
-    )
+    expect(tex).toContain("\\href{mailto:jane.doe@example.com}{by email}")
   })
 
-  it("renders closing and signature", () => {
+  it("renders entity-typed markup literally", () => {
     const tex = squash(renderCoverLetter(basePayload))
-    expect(tex).toContain("\\noindent Sincerely, \\\\")
-    expect(tex).toContain("\\noindent John Doe")
+    expect(tex).toContain("renders literally: <div>.")
+  })
+
+  it("skips the empty paragraph and breaks mid-paragraph on <br>", () => {
+    const tex = squash(renderCoverLetter(basePayload))
+    expect(tex).toContain("above this line, and \\\\ this breaks mid-paragraph.")
+  })
+
+  it("renders signoff and signature", () => {
+    const tex = squash(renderCoverLetter(basePayload))
+    expect(tex).toContain("\\noindent Yours sincerely, \\\\")
+    expect(tex).toContain("\\noindent Jane Doe")
   })
 
   it("escapes user-provided strings exactly once", () => {
-    const payload = {
+    const payload: CoverLetterPayload = {
       ...basePayload,
-      body: ["Special chars: & % $ # _ { } ~ ^ \\"],
+      body: "<p>Special chars: & % $ # _ { } ~ ^ \\</p>",
     }
     const tex = squash(renderCoverLetter(payload))
     // escape-latex uses \textasciitilde{} and \textasciicircum{} for ~ and ^
@@ -99,46 +99,36 @@ describe("renderCoverLetter", () => {
     )
   })
 
-  it("omits contact line when no email/phone/location", () => {
-    const payload = {
+  it("ignores the title field", () => {
+    const tex = squash(renderCoverLetter(basePayload))
+    expect(tex).not.toContain("Acme Corp")
+  })
+
+  it("omits date, subject, signoff, and signature lines when null", () => {
+    const payload: CoverLetterPayload = {
+      contact: { full_name: "Jane Doe" },
+      date: null,
+      subject: null,
+      body: "<p>Hello.</p>",
+      signoff: null,
+    }
+    const tex = squash(renderCoverLetter(payload))
+    expect(tex).not.toContain("2026-09-12")
+    expect(tex).not.toContain("\\noindent \\textbf{")
+    expect(tex).not.toContain("Yours sincerely")
+    // Signature (name) also omitted when no signoff.
+    expect(tex).not.toContain("\\noindent Jane Doe")
+  })
+
+  it("omits header rows when contact details are missing", () => {
+    const payload: CoverLetterPayload = {
       ...basePayload,
       contact: { full_name: "Jane Smith" },
+      body: "<p>Hello.</p>",
     }
     const tex = squash(renderCoverLetter(payload))
-    // name is still centered, but no second center for contact line
     expect(tex).not.toContain("\\texttt")
-    // count center environments - should be 1 (name only)
-    const centerCount = (tex.match(/\\begin\{center\}/g) || []).length
-    expect(centerCount).toBe(1)
-  })
-
-  it("omits subject line when not provided", () => {
-    const payload = omit(basePayload, "subject")
-    const tex = squash(renderCoverLetter(payload))
-    expect(tex).not.toContain("Re: Application")
-    // \textbf is still used for name, so check specifically for subject
-    expect(tex).not.toContain("\\noindent\\textbf{")
-  })
-
-  it("handles contact with only email", () => {
-    const payload = {
-      ...basePayload,
-      contact: { full_name: "Jane Smith", email: "jane@example.com" },
-    }
-    const tex = squash(renderCoverLetter(payload))
-    expect(tex).toContain("\\texttt{jane@example.com}")
-    expect(tex).not.toContain("+1 555")
-    expect(tex).not.toContain("Berlin")
-  })
-
-  it("renders multiple body paragraphs correctly", () => {
-    const payload = {
-      ...basePayload,
-      body: ["Paragraph 1.", "Paragraph 2.", "Paragraph 3."],
-    }
-    const tex = squash(renderCoverLetter(payload))
-    expect(tex).toContain("\\noindent Paragraph 1. \\\\[6pt]")
-    expect(tex).toContain("\\noindent Paragraph 2. \\\\[6pt]")
-    expect(tex).toContain("\\noindent Paragraph 3. \\\\[6pt]")
+    expect(tex).not.toContain("\\href")
+    expect(tex).not.toContain("\\textit")
   })
 })

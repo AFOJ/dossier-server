@@ -1,4 +1,5 @@
 {
+  "title": "Chef Cover",
   "contact": {
     "full_name": "Alex Moreau",
     "role": "Head Chef",
@@ -8,12 +9,6 @@
   },
   "date": "September 11, 2026",
   "subject": "Re: Head Chef Position at Restaurant Noma",
-  "body": [
-    "Dear Hiring Manager,",
-    "I am writing to express my interest in the Head Chef position at Restaurant Noma. With 11 years of experience across Michelin-starred kitchens and a deep focus on Nordic fermentation, I am confident I can contribute to your brigade's continued excellence.",
-    "In my most recent role as Chef de Cuisine at Noma, I ran the game and forest menu seasons, serving 40 covers nightly across 12 courses. I built a fermentation lab producing 60+ in-house garums, kojis, and vinegars, cutting external supplier costs by $80k per year. Previously, as Sous Chef at The French Laundry, I supervised 12 cooks across garde manger and saucier stations during three consecutive Michelin three-star reviews.",
-    "My culinary philosophy centers on zero-waste menu design and scaling fermentation techniques for high-volume kitchens. I have presented these approaches at the Nordic Food Tech Conference and led workshops at the Copenhagen Culinary Institute on utilizing 100% of ingredient byproducts through fermentation and preservation.",
-    "I would welcome the opportunity to discuss how my background in Nordic cuisine, fermentation innovation, and brigade leadership aligns with Noma's vision. Thank you for your time and consideration."
-  ],
-  "closing": "Sincerely,"
+  "body": "<p>Dear Hiring Manager,</p><p>I am writing to express my interest in the <strong>Head Chef</strong> position at Restaurant Noma. With 11 years of experience across Michelin-starred kitchens and a deep focus on Nordic fermentation, I am confident I can contribute to your brigade's continued excellence.</p><p>In my most recent role as Chef de Cuisine at Noma, I ran the game and forest menu seasons, serving 40 covers nightly across 12 courses. I built a fermentation lab producing 60+ in-house garums, kojis, and vinegars, cutting external supplier costs by $80k per year.</p><p>My culinary philosophy centers on zero-waste menu design and scaling fermentation techniques for high-volume kitchens.</p><p>I would welcome the opportunity to discuss how my background aligns with Noma's vision. Thank you for your time and consideration.</p>",
+  "signoff": "Sincerely,"
 }

@@ -9,6 +9,7 @@ import Handlebars from "handlebars"
 
 import { formatDateRange, isPresent } from "../lib/dates.js"
 import { escapeLatex } from "../lib/escape-latex.js"
+import { convertHtmlBodyToLatex } from "../lib/html-to-latex.js"
 import type { Bullet, Contact, ResumePayload, Section } from "../schemas/resume.js"
 import type { Contact as CLContact, CoverLetterPayload } from "../schemas/cover-letter.js"
 
@@ -247,33 +248,50 @@ export function buildViewModel(payload: ResumePayload): ResumeViewModel {
 
 export interface CoverLetterViewModel {
   nameLine: Tex
+  roleLine?: Tex
   contactLine?: Tex
-  dateLine: Tex
+  dateLine?: Tex
   subjectLine?: Tex
   bodyParagraphs: Tex[]
-  closingLine: Tex
-  signatureLine: Tex
+  signoffLine?: Tex
+  signatureLine?: Tex
 }
 
-function buildContactLine(contact: CLContact): string | undefined {
+function buildCoverLetterContactLine(contact: CLContact): string | undefined {
   const parts: string[] = []
-  if (contact.email) parts.push(`\\texttt{${escapeLatex(contact.email)}}`)
+  if (contact.email) {
+    const email = escapeLatex(contact.email)
+    parts.push(`\\texttt{\\href{mailto:${email}}{${email}}}`)
+  }
   if (contact.phone) parts.push(`\\texttt{${escapeLatex(contact.phone)}}`)
   if (contact.location) parts.push(`\\texttt{${escapeLatex(contact.location)}}`)
   return parts.length > 0 ? parts.join(SEP) : undefined
 }
 
 export function buildCoverLetterViewModel(payload: CoverLetterPayload): CoverLetterViewModel {
-  const contactLine = buildContactLine(payload.contact)
+  const contactLine = buildCoverLetterContactLine(payload.contact)
   return {
     nameLine: tex(
       `\\begin{center}{\\LARGE \\textbf{${escapeLatex(payload.contact.full_name)}}}\\end{center}`,
     ),
+    ...(isPresent(payload.contact.role)
+      ? {
+          roleLine: tex(
+            `\\begin{center}\\textit{${escapeLatex(payload.contact.role!)}}\\end{center}`,
+          ),
+        }
+      : {}),
     ...(contactLine ? { contactLine: tex(`\\begin{center}${contactLine}\\end{center}`) } : {}),
-    dateLine: tex(escapeLatex(payload.date)),
-    ...(payload.subject ? { subjectLine: tex(`\\textbf{${escapeLatex(payload.subject)}}`) } : {}),
-    bodyParagraphs: payload.body.map((p) => tex(escapeLatex(p))),
-    closingLine: tex(escapeLatex(payload.closing)),
-    signatureLine: tex(escapeLatex(payload.contact.full_name)),
+    ...(isPresent(payload.date) ? { dateLine: tex(escapeLatex(payload.date!)) } : {}),
+    ...(isPresent(payload.subject)
+      ? { subjectLine: tex(`\\textbf{${escapeLatex(payload.subject!)}}`) }
+      : {}),
+    bodyParagraphs: convertHtmlBodyToLatex(payload.body).map((p) => tex(p)),
+    ...(isPresent(payload.signoff)
+      ? {
+          signoffLine: tex(escapeLatex(payload.signoff!)),
+          signatureLine: tex(escapeLatex(payload.contact.full_name)),
+        }
+      : {}),
   }
 }
