@@ -4,17 +4,22 @@
 %------------------------
 
 \documentclass[letterpaper,11pt]{article}
-\usepackage{geometry}
 \usepackage[empty]{fullpage}
 \usepackage[hidelinks]{hyperref}
 
-\geometry{margin=1in}
+\addtolength{\oddsidemargin}{-0.25in}
+\addtolength{\evensidemargin}{-0.25in}
+\addtolength{\topmargin}{-0.35in}
+\addtolength{\textwidth}{0.5in}
+\addtolength{\textheight}{1in}
+
+\setlength{\tabcolsep}{0in}
 
 \begin{document}
 
-{{nameLine}}
-{{#if roleLine}}{{roleLine}}{{/if}}
-{{#if contactLine}}{{contactLine}}{{/if}}
+\noindent \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{\fill}}r@{}}
+{{#each headerRows}}{{left}}{{#if right}} & {{right}}{{/if}}\\
+{{/each}}\end{tabular*}
 \vspace{4pt}\hrule\vspace{12pt}
 
 {{#if dateLine}}\noindent {{dateLine}} \\[6pt]{{/if}}
