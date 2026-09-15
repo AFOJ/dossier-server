@@ -11,7 +11,7 @@ import { formatDateRange, isPresent } from "../lib/dates.js"
 import { escapeLatex } from "../lib/escape-latex.js"
 import { convertHtmlBodyToLatex } from "../lib/html-to-latex.js"
 import type { Bullet, Contact, ResumePayload, Section } from "../schemas/resume.js"
-import type { Contact as CLContact, CoverLetterPayload } from "../schemas/cover-letter.js"
+import type { CoverLetterPayload } from "../schemas/cover-letter.js"
 
 // handlebars is CommonJS; named imports of its exports fail in Node ESM.
 const { SafeString } = Handlebars
@@ -246,10 +246,13 @@ export function buildViewModel(payload: ResumePayload): ResumeViewModel {
 // Cover Letter
 // ---------------------------------------------------------------------------
 
+export interface CoverHeaderRow {
+  left?: Tex
+  right?: Tex
+}
+
 export interface CoverLetterViewModel {
-  nameLine: Tex
-  roleLine?: Tex
-  contactLine?: Tex
+  headerRows: CoverHeaderRow[]
   dateLine?: Tex
   subjectLine?: Tex
   bodyParagraphs: Tex[]
@@ -257,31 +260,35 @@ export interface CoverLetterViewModel {
   signatureLine?: Tex
 }
 
-function buildCoverLetterContactLine(contact: CLContact): string | undefined {
-  const parts: string[] = []
-  if (contact.email) {
-    const email = escapeLatex(contact.email)
-    parts.push(`\\texttt{\\href{mailto:${email}}{${email}}}`)
-  }
-  if (contact.phone) parts.push(`\\texttt{${escapeLatex(contact.phone)}}`)
-  if (contact.location) parts.push(`\\texttt{${escapeLatex(contact.location)}}`)
-  return parts.length > 0 ? parts.join(SEP) : undefined
-}
-
 export function buildCoverLetterViewModel(payload: CoverLetterPayload): CoverLetterViewModel {
-  const contactLine = buildCoverLetterContactLine(payload.contact)
+  const { contact } = payload
+  // Left column: name with role under. Right column: contact with location.
+  // Mirrors the resume header's two-column tabular* layout. Rows are zipped
+  // so neither column has middle gaps when fields are missing.
+  const leftLines: Tex[] = [tex(`\\textbf{\\LARGE {${escapeLatex(contact.full_name)}}}`)]
+  if (isPresent(contact.role)) leftLines.push(tex(`\\textit{${escapeLatex(contact.role!)}}`))
+
+  const rightLines: Tex[] = []
+  if (isPresent(contact.email)) {
+    const email = escapeLatex(contact.email!)
+    rightLines.push(tex(`\\texttt{\\href{mailto:${email}}{${email}}}`))
+  }
+  if (isPresent(contact.phone)) rightLines.push(tex(`\\texttt{${escapeLatex(contact.phone!)}}`))
+  if (isPresent(contact.location))
+    rightLines.push(tex(`\\texttt{${escapeLatex(contact.location!)}}`))
+
+  const headerRows: CoverHeaderRow[] = []
+  for (let i = 0; i < Math.max(leftLines.length, rightLines.length); i++) {
+    const left = leftLines[i]
+    const right = rightLines[i]
+    const row: CoverHeaderRow = {}
+    if (left) row.left = left
+    if (right) row.right = right
+    headerRows.push(row)
+  }
+
   return {
-    nameLine: tex(
-      `\\begin{center}{\\LARGE \\textbf{${escapeLatex(payload.contact.full_name)}}}\\end{center}`,
-    ),
-    ...(isPresent(payload.contact.role)
-      ? {
-          roleLine: tex(
-            `\\begin{center}\\textit{${escapeLatex(payload.contact.role!)}}\\end{center}`,
-          ),
-        }
-      : {}),
-    ...(contactLine ? { contactLine: tex(`\\begin{center}${contactLine}\\end{center}`) } : {}),
+    headerRows,
     ...(isPresent(payload.date) ? { dateLine: tex(escapeLatex(payload.date!)) } : {}),
     ...(isPresent(payload.subject)
       ? { subjectLine: tex(`\\textbf{${escapeLatex(payload.subject!)}}`) }

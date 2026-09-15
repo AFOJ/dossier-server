@@ -28,14 +28,16 @@ describe("renderCoverLetter", () => {
     expect(tex).toContain("\\end{document}")
   })
 
-  it("renders centered name in bold LARGE", () => {
+  it("renders resume-style two-column header with name on the left", () => {
     const tex = squash(renderCoverLetter(basePayload))
-    expect(tex).toContain("\\begin{center}{\\LARGE \\textbf{Jane Doe}}\\end{center}")
+    expect(tex).toContain("\\begin{tabular*}{\\textwidth}{@{}l@{\\extracolsep{\\fill}}r@{}}")
+    expect(tex).toContain("\\textbf{\\LARGE {Jane Doe}}")
+    expect(tex).not.toContain("\\begin{center}")
   })
 
-  it("renders role under the name", () => {
+  it("renders role under the name with contact on the right", () => {
     const tex = squash(renderCoverLetter(basePayload))
-    expect(tex).toContain("\\begin{center}\\textit{Backend Engineer}\\end{center}")
+    expect(tex).toContain("\\textit{Backend Engineer} & \\texttt{London, UK}")
   })
 
   it("renders contact row with hyperlinked email and location", () => {
