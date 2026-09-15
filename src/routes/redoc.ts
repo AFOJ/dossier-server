@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify"
 import { resumePayloadSchema } from "../schemas/resume.js"
+import { coverLetterPayloadSchema } from "../schemas/cover-letter.js"
 
 type JsonSchema = Record<string, unknown>
 
@@ -79,6 +80,43 @@ function stripMeta(schema: unknown): unknown {
     result[key] = stripMeta(value)
   }
   return result
+}
+
+/**
+ * Renames a definition key (and every `$ref` pointing at it) so two schemas
+ * can share the component map without clashing, e.g. the resume's `contact`
+ * (with links) vs. the cover letter's `contact` (no links).
+ */
+function renameDefinition(
+  schema: JsonSchema,
+  from: string,
+  to: string,
+  refPrefix = "#/definitions/",
+): JsonSchema {
+  const rename = (obj: unknown): unknown => {
+    if (!obj || typeof obj !== "object") {
+      return obj
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(rename)
+    }
+    const result: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      if (key === "$ref" && value === `${refPrefix}${from}`) {
+        result[key] = `${refPrefix}${to}`
+      } else if (key === "definitions") {
+        const defs: Record<string, unknown> = {}
+        for (const [defKey, defValue] of Object.entries(value as Record<string, unknown>)) {
+          defs[defKey === from ? to : defKey] = rename(defValue)
+        }
+        result[key] = defs
+      } else {
+        result[key] = rename(value)
+      }
+    }
+    return result
+  }
+  return rename(schema) as JsonSchema
 }
 
 const EXAMPLE_RESUME = {
@@ -234,12 +272,39 @@ const EXAMPLE_RESUME = {
   ],
 }
 
+const EXAMPLE_COVER_LETTER: Record<string, unknown> = {
+  title: "Chef Cover",
+  contact: {
+    full_name: "Alex Moreau",
+    role: "Head Chef",
+    email: "alex@example.com",
+    phone: "+45 555 0142",
+    location: "Copenhagen, DK",
+  },
+  date: "September 11, 2026",
+  subject: "Re: Head Chef Position at Restaurant Noma",
+  // The signoff is part of the body: users write it themselves, so there is
+  // no separate signoff field.
+  body: "<p>Dear Hiring Manager,</p><p>I am writing to express my interest in the <strong>Head Chef</strong> position at Restaurant Noma. With 11 years of experience across Michelin-starred kitchens, I am confident I can contribute to your brigade's continued excellence.</p><p>I would welcome the opportunity to discuss how my background aligns with Noma's vision. Thank you for your time and consideration.<br><br>Sincerely,<br>Alex Moreau</p>",
+}
+
 function buildOpenApiSpec(): OpenApiSpec {
+  // The cover letter reuses a contact shape without `links`; give it its own
+  // component name so it doesn't collide with the resume's richer contact.
+  const coverLetterSchema = renameDefinition(
+    coverLetterPayloadSchema as JsonSchema,
+    "contact",
+    "coverLetterContact",
+  )
+
   return {
     openapi: "3.1.0",
     info: { title: "Dossier API" },
     components: {
-      schemas: rewriteRefsInDefinitions(extractDefinitions(resumePayloadSchema as JsonSchema)),
+      schemas: {
+        ...rewriteRefsInDefinitions(extractDefinitions(coverLetterSchema)),
+        ...rewriteRefsInDefinitions(extractDefinitions(resumePayloadSchema as JsonSchema)),
+      },
     },
     paths: {
       "/health": {
@@ -272,6 +337,31 @@ function buildOpenApiSpec(): OpenApiSpec {
                     unknown
                   >),
                   example: EXAMPLE_RESUME,
+                } as Record<string, unknown>,
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: "PDF generated",
+              content: {
+                "application/pdf": {},
+              },
+            },
+          },
+        },
+      },
+      "/api/cover-letters/process": {
+        post: {
+          summary: "Generate cover letter PDF",
+          tags: ["cover-letter"],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  ...(stripMeta(rewriteRefsDeep(coverLetterSchema)) as Record<string, unknown>),
+                  example: EXAMPLE_COVER_LETTER,
                 } as Record<string, unknown>,
               },
             },
