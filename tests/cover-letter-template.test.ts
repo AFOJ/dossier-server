@@ -13,7 +13,6 @@ const basePayload: CoverLetterPayload = {
   date: "2026-09-12",
   subject: "Application for Backend Engineer (Ref: BE-2026-042)",
   body: '<p>Dear Hiring Manager,</p><p>I was excited to see your posting for a <strong>backend engineer</strong> with payments experience.</p><p>First I cut p99 latency 40% on our <a href="https://example.com/case-study?ref=letter&amp;utm=1">settlement pipeline</a>; second, you can reach me <a href="mailto:jane.doe@example.com">by email</a>.</p><p>Markup I typed as plain text renders literally: &lt;div&gt;.</p><p><br></p><p>An empty paragraph sits above this line, and<br>this breaks mid-paragraph.</p>',
-  signoff: "Yours sincerely,",
 }
 
 function squash(value: string): string {
@@ -83,12 +82,6 @@ describe("renderCoverLetter", () => {
     expect(tex).toContain("above this line, and \\\\ this breaks mid-paragraph.")
   })
 
-  it("renders signoff and signature", () => {
-    const tex = squash(renderCoverLetter(basePayload))
-    expect(tex).toContain("\\noindent Yours sincerely, \\\\")
-    expect(tex).toContain("\\noindent Jane Doe")
-  })
-
   it("escapes user-provided strings exactly once", () => {
     const payload: CoverLetterPayload = {
       ...basePayload,
@@ -106,20 +99,16 @@ describe("renderCoverLetter", () => {
     expect(tex).not.toContain("Acme Corp")
   })
 
-  it("omits date, subject, signoff, and signature lines when null", () => {
+  it("omits date and subject lines when null", () => {
     const payload: CoverLetterPayload = {
       contact: { full_name: "Jane Doe" },
       date: null,
       subject: null,
       body: "<p>Hello.</p>",
-      signoff: null,
     }
     const tex = squash(renderCoverLetter(payload))
     expect(tex).not.toContain("2026-09-12")
     expect(tex).not.toContain("\\noindent \\textbf{")
-    expect(tex).not.toContain("Yours sincerely")
-    // Signature (name) also omitted when no signoff.
-    expect(tex).not.toContain("\\noindent Jane Doe")
   })
 
   it("omits header rows when contact details are missing", () => {

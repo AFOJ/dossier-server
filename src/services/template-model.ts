@@ -256,8 +256,6 @@ export interface CoverLetterViewModel {
   dateLine?: Tex
   subjectLine?: Tex
   bodyParagraphs: Tex[]
-  signoffLine?: Tex
-  signatureLine?: Tex
 }
 
 export function buildCoverLetterViewModel(payload: CoverLetterPayload): CoverLetterViewModel {
@@ -294,11 +292,5 @@ export function buildCoverLetterViewModel(payload: CoverLetterPayload): CoverLet
       ? { subjectLine: tex(`\\textbf{${escapeLatex(payload.subject!)}}`) }
       : {}),
     bodyParagraphs: convertHtmlBodyToLatex(payload.body).map((p) => tex(p)),
-    ...(isPresent(payload.signoff)
-      ? {
-          signoffLine: tex(escapeLatex(payload.signoff!)),
-          signatureLine: tex(escapeLatex(payload.contact.full_name)),
-        }
-      : {}),
   }
 }

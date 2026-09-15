@@ -32,7 +32,6 @@ export const coverLetterPayloadSchema = {
     subject: nullableNonEmptyString,
     // Single rich-text HTML string from the editor (e.g. TipTap).
     body: nonEmptyString,
-    signoff: nullableNonEmptyString,
   },
 
   definitions: {
@@ -56,5 +55,4 @@ export interface CoverLetterPayload {
   subject?: string | null
   /** Rich-text HTML string from the editor. */
   body: string
-  signoff?: string | null
 }

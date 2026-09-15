@@ -16,7 +16,6 @@ const validPayload: CoverLetterPayload = {
   date: "2026-09-12",
   subject: "Application for Backend Engineer (Ref: BE-2026-042)",
   body: "<p>Dear Hiring Manager,</p><p>I am writing to apply for the <strong>backend engineer</strong> role.</p>",
-  signoff: "Yours sincerely,",
 }
 
 function omit<T, K extends keyof T>(obj: T, key: K): Omit<T, K> {
@@ -59,7 +58,12 @@ describe("coverLetterPayloadSchema", () => {
     expect(validate(payload)).toBe(false)
   })
 
-  it("accepts missing title, date, subject, and signoff", () => {
+  it("rejects the legacy signoff field", () => {
+    const payload = { ...validPayload, signoff: "Sincerely," }
+    expect(validate(payload)).toBe(false)
+  })
+
+  it("accepts missing title, date, and subject", () => {
     const payload = {
       contact: { full_name: "Jane Doe" },
       body: "<p>Hello.</p>",
@@ -67,13 +71,12 @@ describe("coverLetterPayloadSchema", () => {
     expect(validate(payload)).toBe(true)
   })
 
-  it("accepts null title, date, subject, and signoff", () => {
+  it("accepts null title, date, and subject", () => {
     const payload = {
       ...validPayload,
       title: null,
       date: null,
       subject: null,
-      signoff: null,
     }
     expect(validate(payload)).toBe(true)
   })
