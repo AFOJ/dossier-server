@@ -7,6 +7,10 @@
 \usepackage[empty]{fullpage}
 \usepackage[hidelinks]{hyperref}
 
+% Never break words across lines; push them whole to the next line instead.
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+
 \addtolength{\oddsidemargin}{-0.25in}
 \addtolength{\evensidemargin}{-0.25in}
 \addtolength{\topmargin}{-0.35in}
@@ -26,7 +30,7 @@
 {{#if subjectLine}}\noindent {{subjectLine}} \\[12pt]{{/if}}
 
 {{#each bodyParagraphs}}
-\noindent {{this}} \\[6pt]
+\noindent {{this}}
 {{/each}}
 
 \end{document}

@@ -92,8 +92,11 @@ function isSelfClosing(token: string, name: string): boolean {
 /**
  * Converts an HTML string into LaTeX paragraph bodies. Each returned string
  * is already LaTeX-escaped (formatting commands included); the caller only
- * needs to wrap it in a SafeString. Empty paragraphs (e.g. `<p><br></p>`)
- * are skipped.
+ * needs to wrap it in a SafeString. Spacing scales with break count: every
+ * paragraph carries a trailing `\\[Npt]` — a base 6pt for content plus 6pt
+ * per trailing `<br>`, and runs of empty paragraphs (`<p></p>`,
+ * `<p>&nbsp;</p>`, `<p><br></p>`) become stacked `\\[6pt]` spacers, so each
+ * one widens the gap between sections.
  */
 export function convertHtmlBodyToLatex(html: string): string[] {
   const paragraphs: string[] = []
@@ -101,6 +104,7 @@ export function convertHtmlBodyToLatex(html: string): string[] {
   let boldDepth = 0
   const linkStack: (string | null)[] = []
   let skipDepth = 0
+  let trailingBreaks = 0
 
   const activeHref = (): string | null => {
     for (let i = linkStack.length - 1; i >= 0; i--) {
@@ -110,17 +114,34 @@ export function convertHtmlBodyToLatex(html: string): string[] {
     return null
   }
 
-  const flushParagraph = (): void => {
-    // Drop empty paragraphs: whitespace-only or only line-break markers.
-    const visible = current.replace(/\\/g, "").trim()
-    if (visible) {
-      // Trim stray leading/trailing breaks from e.g. `<p><br>text<br></p>`.
-      let out = current.trim()
-      while (out.startsWith(LINE_BREAK)) out = out.slice(LINE_BREAK.length).trimStart()
-      while (out.endsWith(LINE_BREAK)) out = out.slice(0, -LINE_BREAK.length).trimEnd()
-      if (out.replace(/\\/g, "").trim()) paragraphs.push(out)
+  const flushParagraph = (emitEmpty = true): void => {
+    // Trim stray leading/trailing breaks from e.g. `<p><br>text<br></p>`.
+    let out = current.trim()
+    while (out.startsWith(LINE_BREAK)) out = out.slice(LINE_BREAK.length).trimStart()
+
+    // Count trailing breaks by removing them.
+    let trailing = 0
+    while (out.endsWith(LINE_BREAK)) {
+      out = out.slice(0, -LINE_BREAK.length).trimEnd()
+      trailing++
+    }
+
+    if (out) {
+      // Content paragraph: base 6pt + 6pt per trailing break.
+      out += ` \\\\[${(1 + trailing) * 6}pt]`
+      paragraphs.push(out)
+    } else if (emitEmpty) {
+      // Empty paragraph ended by a closing tag (`<p></p>`, `<p>&nbsp;</p>`,
+      // or break-only like `<p><br></p>`/`<p><br><br></p>`): vertical spacer
+      // scaling with the number of breaks, at least one slot.
+      const slots = Math.max(1, trailingBreaks)
+      paragraphs.push(`\\\\[${slots * 6}pt]`)
+    } else {
+      // Start-of-block flush (an opening tag or end of document) with nothing
+      // pending: not a real paragraph, emit nothing.
     }
     current = ""
+    trailingBreaks = 0
   }
 
   const appendTextNode = (raw: string): void => {
@@ -132,6 +153,7 @@ export function convertHtmlBodyToLatex(html: string): string[] {
     if (boldDepth > 0) segment = `\\textbf{${segment}}`
     const href = activeHref()
     if (href) segment = `\\href{${escapeLatex(href)}}{${segment}}`
+    if (segment) trailingBreaks = 0
     current += segment
   }
 
@@ -158,14 +180,15 @@ export function convertHtmlBodyToLatex(html: string): string[] {
 
     if (name === "br") {
       current += ` ${LINE_BREAK} `
+      trailingBreaks++
       continue
     }
 
     if (BLOCK_TAGS.has(name)) {
-      // `<p><br></p>` etc: br inside an otherwise empty block is skipped
-      // by flushParagraph's emptiness check.
-      if (!closing) flushParagraph()
-      else flushParagraph()
+      // Closing a block finalizes its paragraph (including an empty one,
+      // which becomes a spacer); opening one only finalizes whatever is left
+      // over from an unclosed predecessor, never a bare spacer.
+      flushParagraph(closing)
       continue
     }
 
@@ -188,7 +211,7 @@ export function convertHtmlBodyToLatex(html: string): string[] {
     // All other tags (u, em, i, span, ...): stripped, inner text kept.
   }
   appendTextNode(html.slice(lastIndex))
-  flushParagraph()
+  flushParagraph(false)
 
   return paragraphs
 }
