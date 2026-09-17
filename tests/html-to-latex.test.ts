@@ -90,6 +90,32 @@ describe("convertHtmlBodyToLatex", () => {
     ])
   })
 
+  it("preserves multiple trailing <br> as extra vertical space", () => {
+    const [para] = convertHtmlBodyToLatex("<p>Hello<br><br></p>")
+    expect(para).toContain("\\\\[12pt]")
+  })
+
+  it("preserves three trailing <br> as more vertical space", () => {
+    const [para] = convertHtmlBodyToLatex("<p>Hello<br><br><br></p>")
+    expect(para).toContain("\\\\[18pt]")
+  })
+
+  it("still trims single trailing <br> (backward compat)", () => {
+    const [para] = convertHtmlBodyToLatex("<p>Hello<br></p>")
+    expect(para).toBe("Hello")
+  })
+
+  it("preserves mid-paragraph <br> as line breaks", () => {
+    const [para] = convertHtmlBodyToLatex("<p>Line1<br>Line2</p>")
+    expect(para).toContain("Line1 \\\\ Line2")
+  })
+
+  it("handles mixed: mid-paragraph breaks + trailing breaks", () => {
+    const [para] = convertHtmlBodyToLatex("<p>Line1<br>Line2<br><br></p>")
+    expect(para).toContain("Line1 \\\\ Line2")
+    expect(para).toContain("\\\\[12pt]")
+  })
+
   it("preserves unicode as-is", () => {
     expect(convertHtmlBodyToLatex("<p>naïve façade, 日本語テスト, 🎉</p>")).toEqual([
       "naïve façade, 日本語テスト, 🎉",

@@ -101,6 +101,7 @@ export function convertHtmlBodyToLatex(html: string): string[] {
   let boldDepth = 0
   const linkStack: (string | null)[] = []
   let skipDepth = 0
+  let trailingBreaks = 0
 
   const activeHref = (): string | null => {
     for (let i = linkStack.length - 1; i >= 0; i--) {
@@ -117,10 +118,19 @@ export function convertHtmlBodyToLatex(html: string): string[] {
       // Trim stray leading/trailing breaks from e.g. `<p><br>text<br></p>`.
       let out = current.trim()
       while (out.startsWith(LINE_BREAK)) out = out.slice(LINE_BREAK.length).trimStart()
-      while (out.endsWith(LINE_BREAK)) out = out.slice(0, -LINE_BREAK.length).trimEnd()
+
+      // Handle trailing breaks: single break is trimmed (artifact), multiple become vertical space
+      if (trailingBreaks > 1) {
+        while (out.endsWith(LINE_BREAK)) out = out.slice(0, -LINE_BREAK.length).trimEnd()
+        out += ` \\\\[${trailingBreaks * 6}pt]`
+      } else if (trailingBreaks === 1) {
+        while (out.endsWith(LINE_BREAK)) out = out.slice(0, -LINE_BREAK.length).trimEnd()
+      }
+
       if (out.replace(/\\/g, "").trim()) paragraphs.push(out)
     }
     current = ""
+    trailingBreaks = 0
   }
 
   const appendTextNode = (raw: string): void => {
@@ -132,6 +142,7 @@ export function convertHtmlBodyToLatex(html: string): string[] {
     if (boldDepth > 0) segment = `\\textbf{${segment}}`
     const href = activeHref()
     if (href) segment = `\\href{${escapeLatex(href)}}{${segment}}`
+    if (segment) trailingBreaks = 0
     current += segment
   }
 
@@ -158,6 +169,7 @@ export function convertHtmlBodyToLatex(html: string): string[] {
 
     if (name === "br") {
       current += ` ${LINE_BREAK} `
+      trailingBreaks++
       continue
     }
 
