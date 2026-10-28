@@ -75,6 +75,14 @@
     \end{tabular*}\vspace{-4pt}
 }
 
+% Jake's Resume project heading: name/tech on the left, dates on the right.
+\newcommand{\resumeProjectHeading}[2]{
+  \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
 % XeTeX (tectonic) inserts ~11.5pt of extra glue between these tabular*
 % macros and a following itemize where pdfLaTeX does not, so the trailing
 % vspace is compensated to match the original pdfLaTeX layout.

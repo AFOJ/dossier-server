@@ -10,7 +10,7 @@ import Handlebars from "handlebars"
 import { formatDateRange, isPresent } from "../lib/dates.js"
 import { escapeLatex } from "../lib/escape-latex.js"
 import { convertHtmlBodyToLatex } from "../lib/html-to-latex.js"
-import type { Bullet, Contact, ResumePayload, Section } from "../schemas/resume.js"
+import type { Bullet, Contact, Project, ResumePayload, Section } from "../schemas/resume.js"
 import type { CoverLetterPayload } from "../schemas/cover-letter.js"
 
 // handlebars is CommonJS; named imports of its exports fail in Node ESM.
@@ -27,6 +27,11 @@ function tex(value: string): Tex {
 
 function arg(value: string): Tex {
   return tex(`{${escapeLatex(value)}}`)
+}
+
+/** Wraps already-escaped, trusted LaTeX in a macro argument. */
+function rawArg(value: string): Tex {
+  return tex(`{${value}}`)
 }
 
 // ---------------------------------------------------------------------------
@@ -134,12 +139,25 @@ export interface ListSectionViewModel {
   items: ListItemViewModel[]
 }
 
+export interface ProjectViewModel {
+  headingArg: Tex
+  datesArg: Tex
+  bullets: ExperienceBulletViewModel[]
+}
+
+export interface ProjectsSectionViewModel {
+  type: "projects"
+  titleArg: Tex
+  projects: ProjectViewModel[]
+}
+
 export type SectionViewModel =
   | ParagraphSectionViewModel
   | EducationSectionViewModel
   | SkillsSectionViewModel
   | ExperienceSectionViewModel
   | ListSectionViewModel
+  | ProjectsSectionViewModel
 
 function buildBullet(bullet: Bullet): ExperienceBulletViewModel {
   if (bullet.type === "text-with-title") {
@@ -156,6 +174,18 @@ function composeRoleLine(role: {
 }): string {
   const details = [role.employment_type, role.location].filter(isPresent).join(", ")
   return details ? `${role.job_title} (${details})` : role.job_title
+}
+
+/** Composes the left-hand project cell: linked bold name, then optional tech. */
+function buildProjectHeading(project: Project): string {
+  const name = project.url
+    ? `\\href{${escapeLatex(project.url)}}{\\textbf{${escapeLatex(project.name)}}}`
+    : `\\textbf{${escapeLatex(project.name)}}`
+
+  if (project.technologies.length === 0) return name
+
+  const technologies = project.technologies.map((technology) => escapeLatex(technology)).join(", ")
+  return `${name} $|$ \\emph{${technologies}}`
 }
 
 function buildSection(section: Section): SectionViewModel {
@@ -205,6 +235,17 @@ function buildSection(section: Section): SectionViewModel {
             datesArg: arg(formatDateRange(role.start_date, role.end_date)),
             bullets: role.bullets.map(buildBullet),
           })),
+        })),
+      }
+
+    case "projects":
+      return {
+        type: "projects",
+        titleArg: arg(section.title),
+        projects: section.projects.map((project) => ({
+          headingArg: rawArg(buildProjectHeading(project)),
+          datesArg: arg(formatDateRange(project.start_date, project.end_date)),
+          bullets: project.bullets.map(buildBullet),
         })),
       }
 
