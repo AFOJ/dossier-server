@@ -6,6 +6,7 @@ import {
   type ExperienceSection,
   type ListSection,
   type ParagraphSection,
+  type ProjectsSection,
   type ResumePayload,
 } from "../src/schemas/resume.js"
 
@@ -102,6 +103,14 @@ function experienceSection(payload: ResumePayload): ExperienceSection {
   return section
 }
 
+function projectsSection(payload: ResumePayload): ProjectsSection {
+  const section = payload.sections.find(
+    (section): section is ProjectsSection => section.type === "projects",
+  )
+  if (!section) throw new Error("fixture is missing its projects section")
+  return section
+}
+
 const firstCompany = (payload: ResumePayload): ExperienceCompany =>
   experienceSection(payload).companies[0]!
 
@@ -142,8 +151,8 @@ describe("resumePayloadSchema", () => {
   it("rejects unknown section types", () => {
     const payload = structuredClone(validPayload)
     payload.sections.push({
-      type: "projects",
-      title: "Projects",
+      type: "awards",
+      title: "Awards",
     } as unknown as (typeof payload)["sections"][number])
     expect(validate(payload)).toBe(false)
   })
@@ -264,6 +273,58 @@ describe("resumePayloadSchema", () => {
       const listSection = payload.sections[0] as ListSection
       listSection.items = []
       expect(validate(payload)).toBe(false)
+    })
+  })
+
+  describe("projects section", () => {
+    const baseProjectsPayload: ResumePayload = {
+      title: "Resume",
+      contact: { full_name: "John Doe" },
+      sections: [
+        {
+          type: "projects",
+          title: "Projects",
+          projects: [
+            {
+              name: "Fermentation Monitor",
+              url: "https://example.com/fermentation-monitor",
+              technologies: ["TypeScript", "React"],
+              start_date: "2024",
+              end_date: "Present",
+              bullets: [
+                { type: "text", text: "Built a real-time sensor dashboard." },
+                { type: "text-with-title", title: "Impact", text: "Cut costs by 30%." },
+              ],
+            },
+            {
+              name: "Side Project",
+              technologies: [],
+              bullets: [],
+            },
+          ],
+        },
+      ],
+    }
+
+    it("accepts projects with full and empty optional data", () => {
+      expect(validate(baseProjectsPayload)).toBe(true)
+    })
+
+    it("requires technologies and bullets to be present arrays", () => {
+      const missingTechnologies = structuredClone(baseProjectsPayload)
+      delete (
+        projectsSection(missingTechnologies).projects[0] as unknown as Record<string, unknown>
+      ).technologies
+      expect(validate(missingTechnologies)).toBe(false)
+
+      const missingBullets = structuredClone(baseProjectsPayload)
+      delete (projectsSection(missingBullets).projects[0] as unknown as Record<string, unknown>)
+        .bullets
+      expect(validate(missingBullets)).toBe(false)
+
+      const emptyProjects = structuredClone(baseProjectsPayload)
+      projectsSection(emptyProjects).projects = []
+      expect(validate(emptyProjects)).toBe(false)
     })
   })
 })
