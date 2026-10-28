@@ -193,6 +193,43 @@ export const listSectionSchema = {
   },
 } as const
 
+export const projectSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["name", "technologies", "bullets"],
+  properties: {
+    name: nonEmptyString,
+    url: nonEmptyString,
+    technologies: {
+      type: "array",
+      minItems: 0,
+      items: nonEmptyString,
+    },
+    start_date: nonEmptyString,
+    end_date: nonEmptyString,
+    bullets: {
+      type: "array",
+      minItems: 0,
+      items: { $ref: "#/definitions/bullet" },
+    },
+  },
+} as const
+
+export const projectsSectionSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "title", "projects"],
+  properties: {
+    type: { const: "projects" },
+    title: nonEmptyString,
+    projects: {
+      type: "array",
+      minItems: 1,
+      items: { $ref: "#/definitions/project" },
+    },
+  },
+} as const
+
 export const sectionSchema = {
   oneOf: [
     { $ref: "#/definitions/paragraphSection" },
@@ -200,6 +237,7 @@ export const sectionSchema = {
     { $ref: "#/definitions/skillsSection" },
     { $ref: "#/definitions/experienceSection" },
     { $ref: "#/definitions/listSection" },
+    { $ref: "#/definitions/projectsSection" },
   ],
 } as const
 
@@ -229,6 +267,8 @@ export const resumePayloadSchema = {
     bullet: bulletSchema,
     listItem: listItemSchema,
     listSection: listSectionSchema,
+    project: projectSchema,
+    projectsSection: projectsSectionSchema,
   },
 } as const
 
@@ -296,6 +336,23 @@ export interface ListSection {
   items: ListItem[]
 }
 
+export interface Project {
+  name: string
+  url?: string
+  /** Required, but may be empty when the project lists no technologies. */
+  technologies: string[]
+  start_date?: string
+  end_date?: string
+  /** Required, but may be empty when the project has no bullet points. */
+  bullets: Bullet[]
+}
+
+export interface ProjectsSection {
+  type: "projects"
+  title: string
+  projects: Project[]
+}
+
 export interface ExperienceRole {
   job_title: string
   employment_type?: string
@@ -322,7 +379,12 @@ export interface ExperienceSection {
 }
 
 export type Section =
-  ParagraphSection | EducationSection | SkillsSection | ExperienceSection | ListSection
+  | ParagraphSection
+  | EducationSection
+  | SkillsSection
+  | ExperienceSection
+  | ListSection
+  | ProjectsSection
 
 export interface ResumePayload {
   title: string
