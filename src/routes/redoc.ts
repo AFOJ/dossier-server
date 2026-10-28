@@ -232,22 +232,38 @@ const EXAMPLE_RESUME = {
       ],
     },
     {
-      type: "list",
+      type: "projects",
       title: "Projects",
-      items: [
+      projects: [
         {
-          title: "Flux Design System",
+          name: "Flux Design System",
           url: "https://github.com/AFOJ/flux-design-system",
-          description:
-            "Multi-theme design system with automated Figma-to-CSS token pipeline and accessibility-first Storybook component library.",
-          date: "2026",
+          technologies: ["TypeScript", "React", "Storybook", "Figma API"],
+          start_date: "2025",
+          end_date: "2026",
+          bullets: [
+            {
+              type: "text",
+              text: "Built a multi-theme design system with an automated Figma-to-CSS token pipeline.",
+            },
+            {
+              type: "text-with-title",
+              title: "Accessibility",
+              text: "Shipped an accessibility-first Storybook component library adopted across four product teams.",
+            },
+          ],
         },
         {
-          title: "Ask Airspeed",
+          name: "Ask Airspeed",
           url: "https://github.com/AFOJ/ask-airspeed",
-          description:
-            "Natural language interface for querying sales call history with intent-driven API orchestration.",
-          date: "2026",
+          technologies: ["TypeScript", "Next.js", "OpenAI"],
+          start_date: "2026",
+          bullets: [
+            {
+              type: "text",
+              text: "Built a natural language interface for querying sales call history with intent-driven API orchestration.",
+            },
+          ],
         },
       ],
     },
