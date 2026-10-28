@@ -195,6 +195,18 @@ describe("renderResume", () => {
     expect(tex).toContain("\\jobLineItem {Engineer}{}")
   })
 
+  it("renders project headings without markers while retaining achievement bullets", () => {
+    const tex = squash(renderResume(payloadFixture))
+    expect(tex).toContain(
+      "\\newcommand{\\resumeProjectHeading}[2]{ \\item[] \\begin{tabular*}{\\textwidth}{l@{\\extracolsep{\\fill}}r}",
+    )
+    expect(tex).toContain("\\section{Projects} \\begin{itemize}[leftmargin=0pt]")
+    expect(tex).toContain("\\newcommand{\\resumeItem}[2]{ \\item\\small{")
+    expect(tex).toContain("\\newcommand{\\resumeItemWithoutTitle}[1]{ \\item\\small{")
+    expect(tex).toContain("\\resumeItemWithoutTitle {Built a real-time sensor dashboard.}")
+    expect(tex).toContain("\\resumeItem{Impact}{Cut costs by 30\\%.}")
+  })
+
   it("renders project headings with optional links, technologies, dates, and bullets", () => {
     const tex = squash(renderResume(payloadFixture))
     expect(tex).toContain(
