@@ -1,0 +1,18 @@
+\section{{titleArg}}
+\resumeSubHeadingListStart
+{{#each projects}}
+  \resumeProjectHeading{{headingArg}}{{datesArg}}
+  {{#if bullets}}
+    \resumeItemListStart
+    {{#each bullets}}
+      {{#if titleArg}}
+        \resumeItem{{titleArg}}{{textArg}}
+      {{else}}
+        \resumeItemWithoutTitle
+        {{textArg}}
+      {{/if}}
+    {{/each}}
+    \resumeItemListEnd
+  {{/if}}
+{{/each}}
+\resumeSubHeadingListEnd

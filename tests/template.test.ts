@@ -61,6 +61,28 @@ const payloadFixture: ResumePayload = {
       ],
     },
     {
+      type: "projects",
+      title: "Projects",
+      projects: [
+        {
+          name: "Fermentation Monitor",
+          url: "https://github.com/johndoe/fermentation-monitor",
+          technologies: ["TypeScript", "React", "PostgreSQL"],
+          start_date: "2024-01-01",
+          end_date: "2025-06-30",
+          bullets: [
+            { type: "text", text: "Built a real-time sensor dashboard." },
+            { type: "text-with-title", title: "Impact", text: "Cut costs by 30%." },
+          ],
+        },
+        {
+          name: "Side Project",
+          technologies: [],
+          bullets: [],
+        },
+      ],
+    },
+    {
       type: "skills",
       title: "Skills",
       groups: [
@@ -173,6 +195,16 @@ describe("renderResume", () => {
     expect(tex).toContain("\\jobLineItem {Engineer}{}")
   })
 
+  it("renders project headings with optional links, technologies, dates, and bullets", () => {
+    const tex = squash(renderResume(payloadFixture))
+    expect(tex).toContain(
+      "\\resumeProjectHeading{\\href{https://github.com/johndoe/fermentation-monitor}{\\textbf{Fermentation Monitor}} $|$ \\emph{TypeScript, React, PostgreSQL}}{2024-01-01 - 2025-06-30}",
+    )
+    expect(tex).toContain("\\resumeItemWithoutTitle {Built a real-time sensor dashboard.}")
+    expect(tex).toContain("\\resumeItem{Impact}{Cut costs by 30\\%.}")
+    expect(tex).toContain("\\resumeProjectHeading{\\textbf{Side Project}}{}")
+  })
+
   it("joins skill items with commas", () => {
     const tex = squash(renderResume(payloadFixture))
     expect(tex).toContain("\\resumeSubItem{Languages}{TypeScript, Python}")
@@ -192,11 +224,13 @@ describe("renderResume", () => {
     const tex = squash(renderResume(payloadFixture))
     const profileIdx = tex.indexOf("\\section{Profile}")
     const experienceIdx = tex.indexOf("\\section{Experience}")
+    const projectsIdx = tex.indexOf("\\section{Projects}")
     const skillsIdx = tex.indexOf("\\section{Skills}")
     const educationIdx = tex.indexOf("\\section{Education}")
     expect(profileIdx).toBeGreaterThan(-1)
     expect(experienceIdx).toBeGreaterThan(profileIdx)
-    expect(skillsIdx).toBeGreaterThan(experienceIdx)
+    expect(projectsIdx).toBeGreaterThan(experienceIdx)
+    expect(skillsIdx).toBeGreaterThan(projectsIdx)
     expect(educationIdx).toBeGreaterThan(skillsIdx)
   })
 

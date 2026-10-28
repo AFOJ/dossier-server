@@ -132,14 +132,51 @@
       ]
     },
     {
-      "type": "list",
+      "type": "projects",
       "title": "Projects",
-      "items": [
+      "projects": [
         {
-          "title": "Fermentation Monitor",
+          "name": "Fermentation Monitor",
           "url": "https://github.com/alexmoreau/fermentation-monitor",
-          "description": "IoT sensor dashboard for real-time fermentation tracking (temperature, pH, CO2) with alerting via MQTT. Built with Raspberry Pi, Python, and Grafana.",
-          "date": "2024"
+          "technologies": ["Raspberry Pi", "Python", "Grafana", "MQTT"],
+          "start_date": "2024",
+          "bullets": [
+            {
+              "type": "text",
+              "text": "Built an IoT sensor dashboard for real-time fermentation tracking (temperature, pH, CO2) with alerting via MQTT."
+            },
+            {
+              "type": "text",
+              "text": "Streamed temperature, pH, and CO2 readings into Grafana dashboards for live monitoring across the lab."
+            },
+            {
+              "type": "text",
+              "text": "Reduced spoilage incidents by 25% by tuning alert thresholds with the kitchen team."
+            }
+          ]
+        },
+        {
+          "name": "Seasonal Menu Archive",
+          "technologies": [],
+          "start_date": "2023",
+          "bullets": [
+            {
+              "type": "text",
+              "text": "Catalogued 300+ seasonal menus with provenance notes and sourcing references for the culinary team."
+            }
+          ]
+        },
+        {
+          "name": "Prep Scheduler",
+          "technologies": ["Python", "FastAPI", "PostgreSQL"],
+          "start_date": "January 2022",
+          "end_date": "December 2023",
+          "bullets": [
+            {
+              "type": "text",
+              "text": "Built a scheduling tool that balanced prep lists across stations and cut daily planning time by 40%."
+            }
+          ]
         }
       ]
     },

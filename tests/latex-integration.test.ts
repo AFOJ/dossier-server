@@ -51,6 +51,19 @@ const payload: ResumePayload = {
       ],
     },
     {
+      type: "projects",
+      title: "Projects",
+      projects: [
+        {
+          name: "Fermentation Monitor",
+          url: "https://example.com/fermentation-monitor",
+          technologies: ["TypeScript", "React"],
+          start_date: "2024",
+          bullets: [{ type: "text", text: "Built a real-time sensor dashboard." }],
+        },
+      ],
+    },
+    {
       type: "skills",
       title: "Skills",
       groups: [{ title: "Languages", items: ["TypeScript", "Python"] }],
