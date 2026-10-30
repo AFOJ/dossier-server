@@ -1,8 +1,8 @@
 <p align="center">
-  <h1 align="center">Dossier (Backend)</h1>
+  <h1 align="center">Dossier Server</h1>
 </p>
 
-<p align="center">The server behind <a href="https://github.com/AFOJ/dossier">Dossier</a>, a resume management tool.</p>
+<p align="center">The server behind <a href="https://github.com/AFOJ/dossier">Dossier</a>, a document management tool.</p>
 
 ## Prerequisites
 
@@ -60,6 +60,10 @@ pnpm typecheck
 
 ```bash
 pnpm lint
+```
+
+```bash
+pnpm format
 ```
 
 ## Testing
