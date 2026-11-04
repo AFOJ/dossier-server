@@ -4,76 +4,25 @@
 
 <p align="center">The server behind <a href="https://github.com/AFOJ/dossier">Dossier</a>, a document management tool.</p>
 
-## Prerequisites
+## Development
 
-- [Node.js](https://nodejs.org) ≥ 22
-- [pnpm](https://pnpm.io) ≥ 10
-- [Docker](https://www.docker.com) + Docker Compose v2
-
-> No local LaTeX installation needed — the Docker image embeds tectonic, fonts, and a pre-warmed package cache.
-
-## Installation
+Requires .NET 10. Tectonic is needed for local PDF rendering; the Docker image includes it.
 
 ```bash
-git clone git@github.com:AFOJ/dossier-server.git
-cd dossier-server
+dotnet run --project Dossier.Server
 ```
+
+The server listens on port 3000 by default. Set `CORS_ORIGINS` to a comma-separated list of permitted browser origins.
 
 ```bash
-pnpm install
+dotnet test Dossier.Server.Tests
 ```
 
-## Getting Started (Docker)
+## Docker
 
 ```bash
 cp .env.example .env
+docker compose up --build
 ```
 
-```bash
-docker compose up --build -d
-```
-
-```bash
-curl http://localhost:3000/health
-# {"status":"ok"}
-```
-
-**Rebuild after code changes:** `docker compose up --build -d`
-
-## Local Development
-
-```bash
-cp .env.example .env
-```
-
-```bash
-pnpm dev
-```
-
-```bash
-pnpm test
-```
-
-```bash
-pnpm typecheck
-```
-
-```bash
-pnpm lint
-```
-
-```bash
-pnpm format
-```
-
-## Testing
-
-```bash
-pnpm test
-```
-
-```bash
-pnpm test:watch
-```
-
-Integration tests require tectonic on `PATH`; otherwise skipped.
+The API is available at `http://localhost:3000`; `/health` returns `{"status":"ok"}`.

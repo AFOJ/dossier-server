@@ -4,6 +4,8 @@ using Dossier.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1024 * 1024);
+if (builder.Configuration["urls"] is null)
+    builder.WebHost.UseUrls("http://" + (Environment.GetEnvironmentVariable("HOST") ?? "0.0.0.0") + ":" + (Environment.GetEnvironmentVariable("PORT") ?? "3000"));
 builder.Services.AddSingleton<PayloadValidator>();
 builder.Services.AddSingleton<DocumentRenderer>();
 builder.Services.AddSingleton<IPdfCompiler, TectonicCompiler>();
@@ -58,5 +60,3 @@ static async Task<IResult> Process(HttpContext context, PayloadValidator validat
 }
 
 public partial class Program { }
-
-

@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Update="Schemas/*.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Update="Templates/**/*.hbs" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Templates/**/*.hbs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Handlebars.Net" Version="2.1.6" />

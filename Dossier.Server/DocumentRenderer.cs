@@ -22,13 +22,23 @@ public sealed class DocumentRenderer
         _coverLetter = engine.Compile(Read(Path.Combine(directory, "cover-letter.hbs")));
     }
 
-    private static string Read(string file) => Interpolation.Replace(File.ReadAllText(file), "{{{$1}}}");
+    // Handlebars.Net consumes one slash from each pair in template text.
+    private static string Read(string file) => Interpolation.Replace(File.ReadAllText(file).Replace(@"\\", @"\\\\"), "{{{$1}}}");
     private static string S(JsonNode? obj, string key) => obj?[key]?.GetValue<string>() ?? "";
     private static JsonArray A(JsonNode? obj, string key) => obj?[key] as JsonArray ?? [];
     private static string Escape(string input) => Regex.Replace(input, @"[\\&%$#_{}~^]", match => match.Value switch
     {
-        "\\" => @"\textbackslash{}", "&" => @"\&", "%" => @"\%", "$" => @"\$", "#" => @"\#",
-        "_" => @"\_", "{" => @"\{", "}" => @"\}", "~" => @"\textasciitilde{}", "^" => @"\textasciicircum{}", _ => match.Value
+        "\\" => @"\textbackslash{}",
+        "&" => @"\&",
+        "%" => @"\%",
+        "$" => @"\$",
+        "#" => @"\#",
+        "_" => @"\_",
+        "{" => @"\{",
+        "}" => @"\}",
+        "~" => @"\textasciitilde{}",
+        "^" => @"\textasciicircum{}",
+        _ => match.Value
     });
     private static string Arg(string value) => "{" + Escape(value) + "}";
     private static string RawArg(string value) => "{" + value + "}";
@@ -60,13 +70,15 @@ public sealed class DocumentRenderer
             case "skills": result["groups"] = A(section, "groups").Select(g => D(("titleArg", Arg(S(g, "title"))), ("itemsArg", Arg(string.Join(", ", A(g, "items").Select(x => x!.GetValue<string>())))))).ToList(); break;
             case "education": result["institutions"] = A(section, "institutions").Select(i => D(("nameArg", Arg(S(i, "name"))), ("datesArg", Arg(Dates(S(i, "start_date"), S(i, "end_date")))), ("degreeArg", Arg(S(i, "degree") + (S(i, "grade") is { Length: > 0 } grade ? " (" + grade + ")" : ""))), ("locationArg", Arg(S(i, "location"))), ("paragraphArg", S(i, "paragraph") is { Length: > 0 } paragraph ? Arg(paragraph) : null))).ToList(); break;
             case "experience": result["companies"] = A(section, "companies").Select(c => D(("websiteArg", S(c, "company_website") is { Length: > 0 } website ? Arg(website) : null), ("nameArg", Arg(S(c, "company_name"))), ("datesArg", Arg(Dates(S(c, "start_date"), S(c, "end_date")))), ("roles", A(c, "roles").Select(r => D(("roleLineArg", Arg(S(r, "job_title") + (string.Join(", ", new[] { S(r, "employment_type"), S(r, "location") }.Where(x => !string.IsNullOrWhiteSpace(x))) is { Length: > 0 } details ? " (" + details + ")" : ""))), ("datesArg", Arg(Dates(S(r, "start_date"), S(r, "end_date")))), ("bullets", A(r, "bullets").Select(Bullet).ToList()))).ToList()))).ToList(); break;
-            case "projects": result["projects"] = A(section, "projects").Select(p => {
-                var name = @"\textbf{" + Escape(S(p, "name")) + "}";
-                if (S(p, "url") is { Length: > 0 } url) name = @"\href{" + Escape(url) + "}{" + name + "}";
-                var tech = A(p, "technologies");
-                if (tech.Count > 0) name += @" $|$ \emph{" + string.Join(", ", tech.Select(x => Escape(x!.GetValue<string>()))) + "}";
-                return D(("headingArg", RawArg(name)), ("datesArg", Arg(Dates(S(p, "start_date"), S(p, "end_date")))), ("bullets", A(p, "bullets").Select(Bullet).ToList()));
-            }).ToList(); break;
+            case "projects":
+                result["projects"] = A(section, "projects").Select(p =>
+                {
+                    var name = @"\textbf{" + Escape(S(p, "name")) + "}";
+                    if (S(p, "url") is { Length: > 0 } url) name = @"\href{" + Escape(url) + "}{" + name + "}";
+                    var tech = A(p, "technologies");
+                    if (tech.Count > 0) name += @" $|$ \emph{" + string.Join(", ", tech.Select(x => Escape(x!.GetValue<string>()))) + "}";
+                    return D(("headingArg", RawArg(name)), ("datesArg", Arg(Dates(S(p, "start_date"), S(p, "end_date")))), ("bullets", A(p, "bullets").Select(Bullet).ToList()));
+                }).ToList(); break;
             case "list": result["items"] = A(section, "items").Select(i => D(("titleArg", S(i, "title") is { Length: > 0 } title ? Arg(title) : null), ("titleUrlArg", S(i, "url") is { Length: > 0 } url ? Arg(url) : null), ("descriptionArg", Arg(S(i, "description") + (S(i, "date") is { Length: > 0 } date ? " (" + date + ")" : ""))))).ToList(); break;
         }
         return result;

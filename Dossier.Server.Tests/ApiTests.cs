@@ -60,6 +60,25 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         Assert.Equal("NOT_FOUND", body.GetProperty("error").GetProperty("code").GetString());
     }
 
+
+    [Fact]
+    public async Task Compilation_failure_keeps_existing_error_contract()
+    {
+        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services => services.Replace(ServiceDescriptor.Singleton<IPdfCompiler>(new FailingCompiler()))));
+        using var client = factory.CreateClient();
+        var response = await client.PostAsJsonAsync("/api/resumes/process", new { title = "Test", contact = new { full_name = "Jane" }, sections = Array.Empty<object>() });
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("COMPILE_ERROR", body.GetProperty("error").GetProperty("code").GetString());
+        Assert.Contains("Missing", body.GetProperty("error").GetProperty("details")[0].GetString());
+    }
+
+    private sealed class FailingCompiler : IPdfCompiler
+    {
+        public Task<byte[]> CompileAsync(string source, CancellationToken cancellationToken) =>
+            throw new CompileException("tectonic exited with an error", "Missing character");
+    }
     public sealed class Factory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)

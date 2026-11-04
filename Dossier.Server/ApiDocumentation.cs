@@ -16,19 +16,57 @@ public static class ApiDocumentation
 
     public static JsonObject Build()
     {
-        var resume = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Schemas/resume.json")))!;
-        var cover = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Schemas/cover-letter.json")))!;
+        var resume = (JsonObject)JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Schemas/resume.json")))!;
+        var cover = (JsonObject)JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Schemas/cover-letter.json")))!;
+        var components = new JsonObject();
+        AddDefinitions(cover, components, true);
+        AddDefinitions(resume, components, false);
+        var resumeBody = Clean(resume, false);
+        var coverBody = Clean(cover, true);
         return new JsonObject
         {
             ["openapi"] = "3.1.0",
             ["info"] = new JsonObject { ["title"] = "Dossier API", ["version"] = "1.0.0" },
+            ["components"] = new JsonObject { ["schemas"] = components },
             ["paths"] = new JsonObject
             {
                 ["/health"] = new JsonObject { ["get"] = new JsonObject { ["responses"] = new JsonObject { ["200"] = new JsonObject { ["description"] = "OK" } } } },
-                ["/api/resumes/process"] = Operation("Generate resume PDF", resume),
-                ["/api/cover-letters/process"] = Operation("Generate cover letter PDF", cover)
+                ["/api/resumes/process"] = Operation("Generate resume PDF", resumeBody),
+                ["/api/cover-letters/process"] = Operation("Generate cover letter PDF", coverBody)
             }
         };
+    }
+
+    private static void AddDefinitions(JsonObject schema, JsonObject components, bool cover)
+    {
+        foreach (var (name, definition) in (JsonObject)schema["definitions"]!)
+            components[cover && name == "contact" ? "coverLetterContact" : name] = Clean(definition!, cover);
+    }
+
+    private static JsonNode Clean(JsonNode node, bool cover)
+    {
+        var clone = node.DeepClone();
+        Rewrite(clone, cover);
+        if (clone is JsonObject obj)
+        {
+            obj.Remove("$id"); obj.Remove("$schema"); obj.Remove("definitions");
+        }
+        return clone;
+    }
+
+    private static void Rewrite(JsonNode node, bool cover)
+    {
+        if (node is JsonObject obj)
+        {
+            if (obj["$ref"] is JsonValue reference)
+            {
+                var name = reference.GetValue<string>().Split('/').Last();
+                obj["$ref"] = "#/components/schemas/" + (cover && name == "contact" ? "coverLetterContact" : name);
+            }
+            foreach (var child in obj.Select(x => x.Value).Where(x => x is not null)) Rewrite(child!, cover);
+        }
+        else if (node is JsonArray array)
+            foreach (var child in array.Where(x => x is not null)) Rewrite(child!, cover);
     }
 
     private static JsonObject Operation(string summary, JsonNode schema) => new()

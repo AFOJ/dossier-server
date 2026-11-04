@@ -16,8 +16,7 @@ RUN apk add --no-cache tar \
  && chmod +x /usr/local/bin/tectonic
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
-RUN apk add --no-cache fontconfig curl \
- && addgroup -S app && adduser -S -G app app
+RUN apk add --no-cache fontconfig curl
 WORKDIR /app
 COPY --from=tectonic /usr/local/bin/tectonic /usr/local/bin/tectonic
 USER app
@@ -29,4 +28,3 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD curl -fsS "http://127.0.0.1:${PORT:-3000}/health" >/dev/null || exit 1
 CMD ["sh", "-c", "ASPNETCORE_URLS=http://${HOST:-0.0.0.0}:${PORT:-3000} exec dotnet Dossier.Server.dll"]
-
