@@ -62,6 +62,10 @@ public sealed class TectonicCompiler : IPdfCompiler
                     throw new CompileException("tectonic reported success but produced no PDF", await ReadExcerptAsync(directory, await stderr));
                 return await File.ReadAllBytesAsync(pdf, cancellationToken);
             }
+            catch (System.ComponentModel.Win32Exception error)
+            {
+                throw new CompileException("tectonic exited with an error", error.Message);
+            }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 if (!process.HasExited) process.Kill(entireProcessTree: true);
@@ -89,3 +93,4 @@ public sealed class TectonicCompiler : IPdfCompiler
         return excerpt.Length > 2000 ? excerpt[^2000..] : excerpt;
     }
 }
+

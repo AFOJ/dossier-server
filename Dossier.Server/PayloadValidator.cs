@@ -1,9 +1,10 @@
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Dossier.Server;
 
-public sealed record ValidationIssue(string path, string message);
+public sealed record ValidationIssue([property: JsonPropertyName("path")] string Path, [property: JsonPropertyName("message")] string Message);
 
 public sealed class PayloadValidator
 {
@@ -36,6 +37,9 @@ public sealed class PayloadValidator
             if (!options.Any(option => Valid(value, option!, root))) errors.Add(new(path, "must match a schema in anyOf"));
             return;
         }
+        if (schema["required"] is JsonArray conditionalRequired && schema["type"] is null && value is JsonObject conditionalObject)
+            foreach (var name in conditionalRequired.Select(x => x!.GetValue<string>()))
+                if (!conditionalObject.ContainsKey(name)) errors.Add(new(path, "must have required property '" + name + "'"));
         if (schema["if"] is JsonNode condition && Valid(value, condition, root) && schema["then"] is JsonNode consequence)
             Check(value, consequence, root, path, errors);
         if (schema["const"] is JsonNode constant && !JsonNode.DeepEquals(value, constant))
@@ -92,3 +96,5 @@ public sealed class PayloadValidator
         return errors.Count == 0;
     }
 }
+
+

@@ -4,7 +4,6 @@ using Dossier.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1024 * 1024);
-builder.WebHost.UseUrls("http://" + (Environment.GetEnvironmentVariable("HOST") ?? "0.0.0.0") + ":" + (Environment.GetEnvironmentVariable("PORT") ?? "3000"));
 builder.Services.AddSingleton<PayloadValidator>();
 builder.Services.AddSingleton<DocumentRenderer>();
 builder.Services.AddSingleton<IPdfCompiler, TectonicCompiler>();
@@ -36,6 +35,9 @@ app.Use(async (context, next) =>
         }
     }
 });
+app.MapGet("/", () => Results.Redirect("/docs"));
+app.MapGet("/docs", () => Results.Content(ApiDocumentation.Html, "text/html"));
+app.MapGet("/docs/json", () => Results.Json(ApiDocumentation.Build()));
 app.MapGet("/health", () => Results.Json(new { status = "ok" }));
 app.MapPost("/api/resumes/process", (HttpContext context, PayloadValidator validator, DocumentRenderer renderer, IPdfCompiler compiler) => Process(context, validator, renderer, compiler, true));
 app.MapPost("/api/cover-letters/process", (HttpContext context, PayloadValidator validator, DocumentRenderer renderer, IPdfCompiler compiler) => Process(context, validator, renderer, compiler, false));
@@ -56,3 +58,5 @@ static async Task<IResult> Process(HttpContext context, PayloadValidator validat
 }
 
 public partial class Program { }
+
+
