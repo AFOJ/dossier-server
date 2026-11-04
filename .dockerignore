@@ -1,6 +1,5 @@
-node_modules
 .git
-Dossier.Server.Tests
+Dossier.Tests
 **/bin
 **/obj
 .env

@@ -1,21 +1,55 @@
-<p align="center">
-  <h1 align="center">Dossier Server</h1>
-</p>
+<h1 align="center">Dossier Server</h1>
 
 <p align="center">The server behind <a href="https://github.com/AFOJ/dossier">Dossier</a>, a document management tool.</p>
 
+## About
+
+Dossier Server is a stateless service for handling server-side operations for the Dossier project. It processes requests and returns results without storing your documents.
+
 ## Development
 
-Requires .NET 10. Tectonic is needed for local PDF rendering; the Docker image includes it.
+This server is built with C# and ASP.NET Core. You need .NET 10 and Tectonic to run it locally. The Docker image includes Tectonic.
+
+To run it locally:
 
 ```bash
-dotnet run --project Dossier.Server
+# Clone the repository
+git clone https://github.com/AFOJ/dossier-server.git
+
+# Change to the project directory
+cd dossier-server
+
+# Run the server
+dotnet run
 ```
 
-The server listens on port 3000 by default. Set `CORS_ORIGINS` to a comma-separated list of permitted browser origins.
+The server listens on port 3000. Set `CORS_ORIGINS` to allow browser origins, for example `http://localhost:5173`.
+
+Example request bodies are in [`examples`](./examples/). From the repository root, you can try one with:
 
 ```bash
-dotnet test Dossier.Server.Tests
+curl -X POST http://localhost:3000/api/resumes/process \
+  -H 'Content-Type: application/json' \
+  --data-binary @examples/resume-payload.json \
+  --output resume.pdf
+```
+
+Replace `resumes` and `resume-payload.json` with `cover-letters` and `cover-letter-payload.json` to try the other example.
+
+### Testing
+
+Tests live in `Dossier.Tests` and check API and document behaviour. From the repository root, run:
+
+```bash
+# Run tests
+dotnet test Dossier.Tests
+
+# Check codebase formatting
+dotnet format Dossier.csproj --verify-no-changes
+dotnet format Dossier.Tests/Dossier.Tests.csproj --verify-no-changes
+
+# Build the server and check analyser warnings
+dotnet build -warnaserror
 ```
 
 ## Docker
@@ -24,5 +58,3 @@ dotnet test Dossier.Server.Tests
 cp .env.example .env
 docker compose up --build
 ```
-
-The API is available at `http://localhost:3000`; `/health` returns `{"status":"ok"}`.
