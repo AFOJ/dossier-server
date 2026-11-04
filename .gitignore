@@ -31,3 +31,6 @@ cover-letter.pdf
 
 # Local test payloads
 cover-letter-payload.json
+
+**/bin/
+**/obj/
