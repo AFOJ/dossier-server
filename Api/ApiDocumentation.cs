@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 
-namespace Dossier.Server;
+namespace Dossier.Api;
 
 public static class ApiDocumentation
 {
@@ -40,7 +40,9 @@ public static class ApiDocumentation
     private static void AddDefinitions(JsonObject schema, JsonObject components, bool cover)
     {
         foreach (var (name, definition) in (JsonObject)schema["definitions"]!)
+        {
             components[cover && name == "contact" ? "coverLetterContact" : name] = Clean(definition!, cover);
+        }
     }
 
     private static JsonNode Clean(JsonNode node, bool cover)
@@ -63,10 +65,18 @@ public static class ApiDocumentation
                 var name = reference.GetValue<string>().Split('/').Last();
                 obj["$ref"] = "#/components/schemas/" + (cover && name == "contact" ? "coverLetterContact" : name);
             }
-            foreach (var child in obj.Select(x => x.Value).Where(x => x is not null)) Rewrite(child!, cover);
+            foreach (var child in obj.Select(x => x.Value).Where(x => x is not null))
+            {
+                Rewrite(child!, cover);
+            }
         }
         else if (node is JsonArray array)
-            foreach (var child in array.Where(x => x is not null)) Rewrite(child!, cover);
+        {
+            foreach (var child in array.Where(x => x is not null))
+            {
+                Rewrite(child!, cover);
+            }
+        }
     }
 
     private static JsonObject Operation(string summary, JsonNode schema) => new()

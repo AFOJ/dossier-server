@@ -2,10 +2,11 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Dossier.Server;
+namespace Dossier.Validation;
 
 public sealed record ValidationIssue([property: JsonPropertyName("path")] string Path, [property: JsonPropertyName("message")] string Message);
 
+// Applies the published payload schemas before any user content reaches the renderer.
 public sealed class PayloadValidator
 {
     private readonly JsonNode _resume = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Schemas/resume.json")))!;
@@ -29,25 +30,52 @@ public sealed class PayloadValidator
         }
         if (schema["oneOf"] is JsonArray alternatives)
         {
-            if (!alternatives.Any(option => Valid(value, option!, root))) errors.Add(new(path, "must match exactly one schema in oneOf"));
+            if (!alternatives.Any(option => Valid(value, option!, root)))
+            {
+                errors.Add(new(path, "must match exactly one schema in oneOf"));
+            }
+
             return;
         }
         if (schema["anyOf"] is JsonArray options)
         {
-            if (!options.Any(option => Valid(value, option!, root))) errors.Add(new(path, "must match a schema in anyOf"));
+            if (!options.Any(option => Valid(value, option!, root)))
+            {
+                errors.Add(new(path, "must match a schema in anyOf"));
+            }
+
             return;
         }
+        // Conditions in these schemas can contain required fields without declaring a type.
         if (schema["required"] is JsonArray conditionalRequired && schema["type"] is null && value is JsonObject conditionalObject)
+        {
             foreach (var name in conditionalRequired.Select(x => x!.GetValue<string>()))
-                if (!conditionalObject.ContainsKey(name)) errors.Add(new(path, "must have required property '" + name + "'"));
+            {
+                if (!conditionalObject.ContainsKey(name))
+                {
+                    errors.Add(new(path, "must have required property '" + name + "'"));
+                }
+            }
+        }
+
         if (schema["if"] is JsonNode condition && Valid(value, condition, root) && schema["then"] is JsonNode consequence)
+        {
             Check(value, consequence, root, path, errors);
+        }
+
         if (schema["const"] is JsonNode constant && !JsonNode.DeepEquals(value, constant))
+        {
             errors.Add(new(path, "must be equal to constant"));
+        }
+
         var type = schema["type"]?.GetValue<string>();
         if (type == "null")
         {
-            if (value is not null) errors.Add(new(path, "must be null"));
+            if (value is not null)
+            {
+                errors.Add(new(path, "must be null"));
+            }
+
             return;
         }
         if (type == "string")
@@ -58,17 +86,33 @@ public sealed class PayloadValidator
                 return;
             }
             if (schema["minLength"] is JsonValue minimum && text.Length < minimum.GetValue<int>())
+            {
                 errors.Add(new(path, "must NOT have fewer than 1 characters"));
+            }
+
             if (schema["pattern"] is JsonValue pattern && !Regex.IsMatch(text, pattern.GetValue<string>()))
+            {
                 errors.Add(new(path, "must match pattern"));
+            }
+
             return;
         }
         if (type == "array")
         {
             if (value is not JsonArray array) { errors.Add(new(path, "must be array")); return; }
-            if (schema["minItems"] is JsonValue min && array.Count < min.GetValue<int>()) errors.Add(new(path, "must NOT have fewer items"));
+            if (schema["minItems"] is JsonValue min && array.Count < min.GetValue<int>())
+            {
+                errors.Add(new(path, "must NOT have fewer items"));
+            }
+
             if (schema["items"] is JsonNode itemSchema)
-                for (var i = 0; i < array.Count; i++) Check(array[i], itemSchema, root, path + "/" + i, errors);
+            {
+                for (var i = 0; i < array.Count; i++)
+                {
+                    Check(array[i], itemSchema, root, path + "/" + i, errors);
+                }
+            }
+
             return;
         }
         if (type == "object")
@@ -76,15 +120,29 @@ public sealed class PayloadValidator
             if (value is not JsonObject obj) { errors.Add(new(path, "must be object")); return; }
             var properties = schema["properties"] as JsonObject;
             if (schema["required"] is JsonArray required)
+            {
                 foreach (var name in required.Select(x => x!.GetValue<string>()))
-                    if (!obj.ContainsKey(name)) errors.Add(new(path, "must have required property '" + name + "'"));
+                {
+                    if (!obj.ContainsKey(name))
+                    {
+                        errors.Add(new(path, "must have required property '" + name + "'"));
+                    }
+                }
+            }
+
             foreach (var (name, child) in obj)
             {
                 if (properties is null || !properties.TryGetPropertyValue(name, out var propertySchema))
                 {
-                    if (schema["additionalProperties"]?.GetValue<bool>() == false) errors.Add(new(path, "must NOT have additional properties"));
+                    if (schema["additionalProperties"]?.GetValue<bool>() == false)
+                    {
+                        errors.Add(new(path, "must NOT have additional properties"));
+                    }
                 }
-                else Check(child, propertySchema!, root, path + "/" + name, errors);
+                else
+                {
+                    Check(child, propertySchema!, root, path + "/" + name, errors);
+                }
             }
         }
     }
@@ -96,5 +154,3 @@ public sealed class PayloadValidator
         return errors.Count == 0;
     }
 }
-
-

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Dossier.Server;
+namespace Dossier.Pdf;
 
 public interface IPdfCompiler
 {
@@ -12,8 +12,10 @@ public sealed class CompileException(string message, string excerpt) : Exception
     public string Excerpt { get; } = excerpt;
 }
 
+// Runs each LaTeX compilation in its own directory and removes the files afterwards.
 public sealed class TectonicCompiler : IPdfCompiler
 {
+    // Bound both active processes and waiting requests so compilation cannot exhaust the host.
     private static readonly SemaphoreSlim Slots = new(2);
     private const int QueueLimit = 16;
     private static int _waiting;
@@ -56,10 +58,16 @@ public sealed class TectonicCompiler : IPdfCompiler
                 await process.WaitForExitAsync(timeout.Token);
                 await Task.WhenAll(stderr, stdout);
                 if (process.ExitCode != 0)
+                {
                     throw new CompileException("tectonic exited with an error", await ReadExcerptAsync(directory, await stderr));
+                }
+
                 var pdf = Path.Combine(directory, "main.pdf");
                 if (!File.Exists(pdf))
+                {
                     throw new CompileException("tectonic reported success but produced no PDF", await ReadExcerptAsync(directory, await stderr));
+                }
+
                 return await File.ReadAllBytesAsync(pdf, cancellationToken);
             }
             catch (System.ComponentModel.Win32Exception error)
@@ -68,12 +76,20 @@ public sealed class TectonicCompiler : IPdfCompiler
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                if (!process.HasExited) process.Kill(entireProcessTree: true);
+                if (!process.HasExited)
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+
                 throw new CompileException("compilation exceeded 30000ms and was terminated", await ReadExcerptAsync(directory, ""));
             }
             catch (OperationCanceledException)
             {
-                if (!process.HasExited) process.Kill(entireProcessTree: true);
+                if (!process.HasExited)
+                {
+                    process.Kill(entireProcessTree: true);
+                }
+
                 throw;
             }
         }
@@ -87,10 +103,13 @@ public sealed class TectonicCompiler : IPdfCompiler
     private static async Task<string> ReadExcerptAsync(string directory, string fallback)
     {
         var path = Path.Combine(directory, "main.log");
-        if (!File.Exists(path)) return fallback.Length > 2000 ? fallback[^2000..] : fallback;
+        if (!File.Exists(path))
+        {
+            return fallback.Length > 2000 ? fallback[^2000..] : fallback;
+        }
+
         var lines = (await File.ReadAllLinesAsync(path)).TakeLast(40);
         var excerpt = string.Join('\n', lines);
         return excerpt.Length > 2000 ? excerpt[^2000..] : excerpt;
     }
 }
-

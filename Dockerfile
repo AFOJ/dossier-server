@@ -3,10 +3,16 @@ ARG TECTONIC_VERSION=0.15.0
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
-COPY Dossier.Server/Dossier.Server.csproj Dossier.Server/
-RUN dotnet restore Dossier.Server/Dossier.Server.csproj
-COPY Dossier.Server/ Dossier.Server/
-RUN dotnet publish Dossier.Server/Dossier.Server.csproj -c Release -o /out --no-restore
+COPY Dossier.csproj ./
+RUN dotnet restore Dossier.csproj
+COPY Program.cs ./
+COPY Api/ Api/
+COPY Documents/ Documents/
+COPY Pdf/ Pdf/
+COPY Validation/ Validation/
+COPY Schemas/ Schemas/
+COPY Templates/ Templates/
+RUN dotnet publish Dossier.csproj -c Release -o /out --no-restore
 
 FROM alpine:3.21 AS tectonic
 ARG TECTONIC_VERSION
@@ -27,4 +33,4 @@ COPY --from=build --chown=app:app /out/ /app/
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD curl -fsS "http://127.0.0.1:${PORT:-3000}/health" >/dev/null || exit 1
-CMD ["sh", "-c", "ASPNETCORE_URLS=http://${HOST:-0.0.0.0}:${PORT:-3000} exec dotnet Dossier.Server.dll"]
+CMD ["sh", "-c", "ASPNETCORE_URLS=http://${HOST:-0.0.0.0}:${PORT:-3000} exec dotnet Dossier.dll"]

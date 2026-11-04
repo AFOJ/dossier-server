@@ -14,7 +14,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - run: dotnet format Dossier.Server/Dossier.Server.csproj --verify-no-changes --severity warn
-      - run: dotnet format Dossier.Server.Tests/Dossier.Server.Tests.csproj --verify-no-changes --severity warn
-      - run: dotnet test Dossier.Server.Tests/Dossier.Server.Tests.csproj --configuration Release
-      - run: dotnet publish Dossier.Server/Dossier.Server.csproj --configuration Release --output publish
+      - run: dotnet format Dossier.csproj --verify-no-changes --severity warn
+      - run: dotnet format Dossier.Tests/Dossier.Tests.csproj --verify-no-changes --severity warn
+      - run: dotnet build Dossier.csproj --configuration Release -warnaserror
+      - run: dotnet test Dossier.Tests/Dossier.Tests.csproj --configuration Release
+      - run: dotnet publish Dossier.csproj --configuration Release --output publish

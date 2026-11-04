@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using Dossier.Server;
+using Dossier.Documents;
 using Xunit;
 
 public class RenderingTests
