@@ -44,9 +44,14 @@ Tests live in `Dossier.Tests` and check API and document behaviour. From the rep
 # Run tests
 dotnet test Dossier.Tests
 
+# Restore the pinned formatter
+dotnet tool restore
+
+# Format the whole codebase
+dotnet csharpier format .
+
 # Check codebase formatting
-dotnet format Dossier.csproj --verify-no-changes
-dotnet format Dossier.Tests/Dossier.Tests.csproj --verify-no-changes
+dotnet csharpier check .
 
 # Build the server and check analyser warnings
 dotnet build -warnaserror

@@ -5,12 +5,37 @@ namespace Dossier.Documents;
 
 public static class HtmlToLatex
 {
-    private static readonly Regex Tokens = new(@"<!--[\s\S]*?-->|<\/?[a-zA-Z][a-zA-Z0-9]*\b[^>]*\/?>", RegexOptions.Compiled);
-    private static readonly Regex Href = new("href\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"'`>]+))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex TagName = new(@"^<\/?([a-zA-Z][a-zA-Z0-9]*)", RegexOptions.Compiled);
-    private static readonly Regex AllowedHref = new(@"^(https?:|mailto:)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex Tokens = new(
+        @"<!--[\s\S]*?-->|<\/?[a-zA-Z][a-zA-Z0-9]*\b[^>]*\/?>",
+        RegexOptions.Compiled
+    );
+    private static readonly Regex Href = new(
+        "href\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"'`>]+))",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled
+    );
+    private static readonly Regex TagName = new(
+        @"^<\/?([a-zA-Z][a-zA-Z0-9]*)",
+        RegexOptions.Compiled
+    );
+    private static readonly Regex AllowedHref = new(
+        @"^(https?:|mailto:)",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled
+    );
     private static readonly HashSet<string> Blocks =
-        ["p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "li", "ul", "ol"];
+    [
+        "p",
+        "div",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "blockquote",
+        "li",
+        "ul",
+        "ol",
+    ];
 
     public static List<string> Convert(string html)
     {
@@ -143,8 +168,13 @@ public static class HtmlToLatex
             if (!closing && !selfClosing)
             {
                 var attribute = Href.Match(token);
-                var rawUrl = attribute.Groups.Cast<Group>()
-                    .Skip(1).FirstOrDefault(group => group.Success)?.Value ?? "";
+                var rawUrl =
+                    attribute
+                        .Groups.Cast<Group>()
+                        .Skip(1)
+                        .FirstOrDefault(group => group.Success)
+                        ?.Value
+                    ?? "";
                 var url = WebUtility.HtmlDecode(rawUrl).Trim();
                 links.Push(AllowedHref.IsMatch(url) ? url : null);
             }

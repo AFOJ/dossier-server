@@ -16,8 +16,16 @@ public static class ApiDocumentation
 
     public static JsonObject Build()
     {
-        var resume = (JsonObject)JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Schemas/resume.json")))!;
-        var cover = (JsonObject)JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Schemas/cover-letter.json")))!;
+        var resume = (JsonObject)
+            JsonNode.Parse(
+                File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Schemas/resume.json"))
+            )!;
+        var cover = (JsonObject)
+            JsonNode.Parse(
+                File.ReadAllText(
+                    Path.Combine(AppContext.BaseDirectory, "Schemas/cover-letter.json")
+                )
+            )!;
         var components = new JsonObject();
         AddDefinitions(cover, components, true);
         AddDefinitions(resume, components, false);
@@ -30,10 +38,19 @@ public static class ApiDocumentation
             ["components"] = new JsonObject { ["schemas"] = components },
             ["paths"] = new JsonObject
             {
-                ["/health"] = new JsonObject { ["get"] = new JsonObject { ["responses"] = new JsonObject { ["200"] = new JsonObject { ["description"] = "OK" } } } },
+                ["/health"] = new JsonObject
+                {
+                    ["get"] = new JsonObject
+                    {
+                        ["responses"] = new JsonObject
+                        {
+                            ["200"] = new JsonObject { ["description"] = "OK" },
+                        },
+                    },
+                },
                 ["/api/resumes/process"] = Operation("Generate resume PDF", resumeBody),
-                ["/api/cover-letters/process"] = Operation("Generate cover letter PDF", coverBody)
-            }
+                ["/api/cover-letters/process"] = Operation("Generate cover letter PDF", coverBody),
+            },
         };
     }
 
@@ -41,7 +58,10 @@ public static class ApiDocumentation
     {
         foreach (var (name, definition) in (JsonObject)schema["definitions"]!)
         {
-            components[cover && name == "contact" ? "coverLetterContact" : name] = Clean(definition!, cover);
+            components[cover && name == "contact" ? "coverLetterContact" : name] = Clean(
+                definition!,
+                cover
+            );
         }
     }
 
@@ -51,7 +71,9 @@ public static class ApiDocumentation
         Rewrite(clone, cover);
         if (clone is JsonObject obj)
         {
-            obj.Remove("$id"); obj.Remove("$schema"); obj.Remove("definitions");
+            obj.Remove("$id");
+            obj.Remove("$schema");
+            obj.Remove("definitions");
         }
         return clone;
     }
@@ -63,7 +85,9 @@ public static class ApiDocumentation
             if (obj["$ref"] is JsonValue reference)
             {
                 var name = reference.GetValue<string>().Split('/').Last();
-                obj["$ref"] = "#/components/schemas/" + (cover && name == "contact" ? "coverLetterContact" : name);
+                obj["$ref"] =
+                    "#/components/schemas/"
+                    + (cover && name == "contact" ? "coverLetterContact" : name);
             }
             foreach (var child in obj.Select(x => x.Value).Where(x => x is not null))
             {
@@ -79,17 +103,28 @@ public static class ApiDocumentation
         }
     }
 
-    private static JsonObject Operation(string summary, JsonNode schema) => new()
-    {
-        ["post"] = new JsonObject
+    private static JsonObject Operation(string summary, JsonNode schema) =>
+        new()
         {
-            ["summary"] = summary,
-            ["requestBody"] = new JsonObject
+            ["post"] = new JsonObject
             {
-                ["required"] = true,
-                ["content"] = new JsonObject { ["application/json"] = new JsonObject { ["schema"] = schema } }
+                ["summary"] = summary,
+                ["requestBody"] = new JsonObject
+                {
+                    ["required"] = true,
+                    ["content"] = new JsonObject
+                    {
+                        ["application/json"] = new JsonObject { ["schema"] = schema },
+                    },
+                },
+                ["responses"] = new JsonObject
+                {
+                    ["200"] = new JsonObject
+                    {
+                        ["description"] = "PDF generated",
+                        ["content"] = new JsonObject { ["application/pdf"] = new JsonObject() },
+                    },
+                },
             },
-            ["responses"] = new JsonObject { ["200"] = new JsonObject { ["description"] = "PDF generated", ["content"] = new JsonObject { ["application/pdf"] = new JsonObject() } } }
-        }
-    };
+        };
 }

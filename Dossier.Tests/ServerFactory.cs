@@ -8,14 +8,16 @@ public sealed class ServerFactory : WebApplicationFactory<Program>
 {
     private readonly IPdfCompiler _compiler;
 
-    public ServerFactory() : this(new TestPdfCompiler()) { }
+    public ServerFactory()
+        : this(new TestPdfCompiler()) { }
 
     internal ServerFactory(IPdfCompiler compiler) => _compiler = compiler;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
-            services.Replace(ServiceDescriptor.Singleton(_compiler)));
+            services.Replace(ServiceDescriptor.Singleton(_compiler))
+        );
     }
 }
 

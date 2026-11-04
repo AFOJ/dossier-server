@@ -9,7 +9,10 @@ public sealed class DocumentRenderer
     private readonly HandlebarsTemplate<object, object> _resume;
     private readonly HandlebarsTemplate<object, object> _coverLetter;
 
-    private static readonly Regex Interpolation = new(@"(?<!\{)\{\{(?![#/>!{])(\w+)\}\}(?!\})", RegexOptions.Compiled);
+    private static readonly Regex Interpolation = new(
+        @"(?<!\{)\{\{(?![#/>!{])(\w+)\}\}(?!\})",
+        RegexOptions.Compiled
+    );
 
     private static readonly Regex LatexSpecials = new(@"[\\&%$#_{}~^]", RegexOptions.Compiled);
 
@@ -17,8 +20,15 @@ public sealed class DocumentRenderer
     {
         var engine = Handlebars.Create();
         engine.RegisterHelper("sectionPartial", (_, arguments) => arguments[0]?.ToString() ?? "");
-        engine.RegisterHelper("or", (_, arguments) => arguments.Take(arguments.Length - 1)
-            .Any(value => value is not null && !Equals(value, false) && value.ToString() != ""));
+        engine.RegisterHelper(
+            "or",
+            (_, arguments) =>
+                arguments
+                    .Take(arguments.Length - 1)
+                    .Any(value =>
+                        value is not null && !Equals(value, false) && value.ToString() != ""
+                    )
+        );
 
         var directory = Path.Combine(AppContext.BaseDirectory, "Templates");
         foreach (var file in Directory.GetFiles(Path.Combine(directory, "partials"), "*.hbs"))
@@ -37,27 +47,37 @@ public sealed class DocumentRenderer
         return Interpolation.Replace(source, "{{{$1}}}");
     }
 
-    private static string GetString(JsonNode? node, string key) => node?[key]?.GetValue<string>() ?? "";
+    private static string GetString(JsonNode? node, string key) =>
+        node?[key]?.GetValue<string>() ?? "";
+
     private static JsonArray GetArray(JsonNode? node, string key) => node?[key] as JsonArray ?? [];
+
     private static string Argument(string value) => "{" + EscapeText(value) + "}";
+
     private static string TrustedArgument(string value) => "{" + value + "}";
+
     private static Dictionary<string, object?> Model(params (string Key, object? Value)[] values) =>
         values.ToDictionary(value => value.Key, value => value.Value);
 
-    internal static string EscapeText(string input) => LatexSpecials.Replace(input, match => match.Value switch
-    {
-        "\\" => @"\textbackslash{}",
-        "&" => @"\&",
-        "%" => @"\%",
-        "$" => @"\$",
-        "#" => @"\#",
-        "_" => @"\_",
-        "{" => @"\{",
-        "}" => @"\}",
-        "~" => @"\textasciitilde{}",
-        "^" => @"\textasciicircum{}",
-        _ => match.Value
-    });
+    internal static string EscapeText(string input) =>
+        LatexSpecials.Replace(
+            input,
+            match =>
+                match.Value switch
+                {
+                    "\\" => @"\textbackslash{}",
+                    "&" => @"\&",
+                    "%" => @"\%",
+                    "$" => @"\$",
+                    "#" => @"\#",
+                    "_" => @"\_",
+                    "{" => @"\{",
+                    "}" => @"\}",
+                    "~" => @"\textasciitilde{}",
+                    "^" => @"\textasciicircum{}",
+                    _ => match.Value,
+                }
+        );
 
     private static string DateRange(JsonNode? node)
     {
@@ -68,7 +88,10 @@ public sealed class DocumentRenderer
             return start;
         }
 
-        return string.Join(" - ", new[] { start, end }.Where(date => !string.IsNullOrWhiteSpace(date)));
+        return string.Join(
+            " - ",
+            new[] { start, end }.Where(date => !string.IsNullOrWhiteSpace(date))
+        );
     }
 
     public string Resume(JsonNode payload)
@@ -87,15 +110,27 @@ public sealed class DocumentRenderer
             contactParts.Add(@"\texttt{" + EscapeText(phone) + "}");
         }
 
-        var links = GetArray(contact, "links").Select(link =>
-            @"\href{" + EscapeText(GetString(link, "url")) + "}{" + EscapeText(GetString(link, "label")) + "}");
+        var links = GetArray(contact, "links")
+            .Select(link =>
+                @"\href{"
+                + EscapeText(GetString(link, "url"))
+                + "}{"
+                + EscapeText(GetString(link, "label"))
+                + "}"
+            );
 
         var header = Model(
             ("nameLine", @"\textbf{\LARGE {" + EscapeText(GetString(contact, "full_name")) + "}}"),
             ("contactLine", string.Join(" · ", contactParts)),
             ("linksLine", string.Join(" · ", links)),
             ("roleArg", GetString(contact, "role") is { Length: > 0 } role ? Argument(role) : null),
-            ("locationArg", GetString(contact, "location") is { Length: > 0 } location ? Argument(location) : null));
+            (
+                "locationArg",
+                GetString(contact, "location") is { Length: > 0 } location
+                    ? Argument(location)
+                    : null
+            )
+        );
 
         var sections = GetArray(payload, "sections").Select(Section).ToList();
         return _resume(Model(("header", header), ("sections", sections)));
@@ -115,7 +150,9 @@ public sealed class DocumentRenderer
                 model["groups"] = GetArray(section, "groups").Select(SkillGroup).ToList();
                 break;
             case "education":
-                model["institutions"] = GetArray(section, "institutions").Select(Institution).ToList();
+                model["institutions"] = GetArray(section, "institutions")
+                    .Select(Institution)
+                    .ToList();
                 break;
             case "experience":
                 model["companies"] = GetArray(section, "companies").Select(Company).ToList();
@@ -131,10 +168,19 @@ public sealed class DocumentRenderer
         return model;
     }
 
-    private static object SkillGroup(JsonNode? group) => Model(
-        ("titleArg", Argument(GetString(group, "title"))),
-        ("itemsArg", Argument(string.Join(", ", GetArray(group, "items")
-            .Select(item => item!.GetValue<string>())))));
+    private static object SkillGroup(JsonNode? group) =>
+        Model(
+            ("titleArg", Argument(GetString(group, "title"))),
+            (
+                "itemsArg",
+                Argument(
+                    string.Join(
+                        ", ",
+                        GetArray(group, "items").Select(item => item!.GetValue<string>())
+                    )
+                )
+            )
+        );
 
     private static object Institution(JsonNode? institution)
     {
@@ -150,7 +196,8 @@ public sealed class DocumentRenderer
             ("datesArg", Argument(DateRange(institution))),
             ("degreeArg", Argument(degree)),
             ("locationArg", Argument(GetString(institution, "location"))),
-            ("paragraphArg", paragraph.Length > 0 ? Argument(paragraph) : null));
+            ("paragraphArg", paragraph.Length > 0 ? Argument(paragraph) : null)
+        );
     }
 
     private static object Company(JsonNode? company)
@@ -160,15 +207,18 @@ public sealed class DocumentRenderer
             ("websiteArg", website.Length > 0 ? Argument(website) : null),
             ("nameArg", Argument(GetString(company, "company_name"))),
             ("datesArg", Argument(DateRange(company))),
-            ("roles", GetArray(company, "roles").Select(Role).ToList()));
+            ("roles", GetArray(company, "roles").Select(Role).ToList())
+        );
     }
 
     private static object Role(JsonNode? role)
     {
-        var details = string.Join(", ", new[]
-        {
-            GetString(role, "employment_type"), GetString(role, "location")
-        }.Where(value => !string.IsNullOrWhiteSpace(value)));
+        var details = string.Join(
+            ", ",
+            new[] { GetString(role, "employment_type"), GetString(role, "location") }.Where(value =>
+                !string.IsNullOrWhiteSpace(value)
+            )
+        );
         var title = GetString(role, "job_title");
         if (details.Length > 0)
         {
@@ -178,13 +228,20 @@ public sealed class DocumentRenderer
         return Model(
             ("roleLineArg", Argument(title)),
             ("datesArg", Argument(DateRange(role))),
-            ("bullets", GetArray(role, "bullets").Select(Bullet).ToList()));
+            ("bullets", GetArray(role, "bullets").Select(Bullet).ToList())
+        );
     }
 
-    private static object Bullet(JsonNode? bullet) => Model(
-        ("titleArg", GetString(bullet, "type") == "text-with-title"
-            ? Argument(GetString(bullet, "title")) : null),
-        ("textArg", Argument(GetString(bullet, "text"))));
+    private static object Bullet(JsonNode? bullet) =>
+        Model(
+            (
+                "titleArg",
+                GetString(bullet, "type") == "text-with-title"
+                    ? Argument(GetString(bullet, "title"))
+                    : null
+            ),
+            ("textArg", Argument(GetString(bullet, "text")))
+        );
 
     private static object Project(JsonNode? project)
     {
@@ -197,14 +254,18 @@ public sealed class DocumentRenderer
         var technologies = GetArray(project, "technologies");
         if (technologies.Count > 0)
         {
-            var names = string.Join(", ", technologies.Select(item => EscapeText(item!.GetValue<string>())));
+            var names = string.Join(
+                ", ",
+                technologies.Select(item => EscapeText(item!.GetValue<string>()))
+            );
             heading += @" $|$ \emph{" + names + "}";
         }
 
         return Model(
             ("headingArg", TrustedArgument(heading)),
             ("datesArg", Argument(DateRange(project))),
-            ("bullets", GetArray(project, "bullets").Select(Bullet).ToList()));
+            ("bullets", GetArray(project, "bullets").Select(Bullet).ToList())
+        );
     }
 
     private static object ListItem(JsonNode? item)
@@ -220,13 +281,17 @@ public sealed class DocumentRenderer
         return Model(
             ("titleArg", title.Length > 0 ? Argument(title) : null),
             ("titleUrlArg", url.Length > 0 ? Argument(url) : null),
-            ("descriptionArg", Argument(description)));
+            ("descriptionArg", Argument(description))
+        );
     }
 
     public string CoverLetter(JsonNode payload)
     {
         var contact = payload["contact"]!;
-        var left = new List<string> { @"\textbf{\LARGE {" + EscapeText(GetString(contact, "full_name")) + "}}" };
+        var left = new List<string>
+        {
+            @"\textbf{\LARGE {" + EscapeText(GetString(contact, "full_name")) + "}}",
+        };
         if (GetString(contact, "role") is { Length: > 0 } role)
         {
             left.Add(@"\textit{" + EscapeText(role) + "}");
@@ -247,16 +312,28 @@ public sealed class DocumentRenderer
             right.Add(@"\texttt{" + EscapeText(location) + "}");
         }
 
-        var rows = Enumerable.Range(0, Math.Max(left.Count, right.Count)).Select(index => Model(
-            ("left", index < left.Count ? left[index] : null),
-            ("right", index < right.Count ? right[index] : null))).ToList();
+        var rows = Enumerable
+            .Range(0, Math.Max(left.Count, right.Count))
+            .Select(index =>
+                Model(
+                    ("left", index < left.Count ? left[index] : null),
+                    ("right", index < right.Count ? right[index] : null)
+                )
+            )
+            .ToList();
 
         var date = GetString(payload, "date");
         var subject = GetString(payload, "subject");
-        return _coverLetter(Model(
-            ("headerRows", rows),
-            ("dateLine", date.Length > 0 ? EscapeText(date) : null),
-            ("subjectLine", subject.Length > 0 ? @"\textbf{" + EscapeText(subject) + "}" : null),
-            ("bodyParagraphs", HtmlToLatex.Convert(GetString(payload, "body")))));
+        return _coverLetter(
+            Model(
+                ("headerRows", rows),
+                ("dateLine", date.Length > 0 ? EscapeText(date) : null),
+                (
+                    "subjectLine",
+                    subject.Length > 0 ? @"\textbf{" + EscapeText(subject) + "}" : null
+                ),
+                ("bodyParagraphs", HtmlToLatex.Convert(GetString(payload, "body")))
+            )
+        );
     }
 }
