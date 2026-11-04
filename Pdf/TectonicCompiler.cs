@@ -19,8 +19,14 @@ public sealed class TectonicCompiler : IPdfCompiler
     private static readonly SemaphoreSlim Slots = new(2);
     private const int QueueLimit = 16;
     private static int _waiting;
+    private readonly ILogger<TectonicCompiler> _logger;
     private readonly string _binary =
         Environment.GetEnvironmentVariable("TECTONIC_BIN") ?? "tectonic";
+
+    public TectonicCompiler(ILogger<TectonicCompiler> logger)
+    {
+        _logger = logger;
+    }
 
     public async Task<byte[]> CompileAsync(string source, CancellationToken cancellationToken)
     {
@@ -93,10 +99,7 @@ public sealed class TectonicCompiler : IPdfCompiler
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                if (!process.HasExited)
-                {
-                    process.Kill(entireProcessTree: true);
-                }
+                await StopProcessAsync(process);
 
                 throw new CompileException(
                     "compilation exceeded 30000ms and was terminated",
@@ -105,19 +108,51 @@ public sealed class TectonicCompiler : IPdfCompiler
             }
             catch (OperationCanceledException)
             {
-                if (!process.HasExited)
-                {
-                    process.Kill(entireProcessTree: true);
-                }
+                await StopProcessAsync(process);
 
                 throw;
             }
         }
         finally
         {
-            Directory.Delete(directory, recursive: true);
-            Slots.Release();
+            try
+            {
+                if (Directory.Exists(directory))
+                {
+                    Directory.Delete(directory, recursive: true);
+                }
+            }
+            catch (Exception error)
+            {
+                // TODO: Explore Sentry observability for failed cleanup and stalled compilation slots.
+                _logger.LogWarning(
+                    error,
+                    "Could not delete compilation directory {Directory}",
+                    directory
+                );
+            }
+            finally
+            {
+                Slots.Release();
+            }
         }
+    }
+
+    private static async Task StopProcessAsync(Process process)
+    {
+        if (!process.HasExited)
+        {
+            try
+            {
+                process.Kill(entireProcessTree: true);
+            }
+            catch (InvalidOperationException) when (process.HasExited)
+            {
+                // The process exited between the check and Kill.
+            }
+        }
+
+        await process.WaitForExitAsync(CancellationToken.None);
     }
 
     private static async Task<string> ReadExcerptAsync(string directory, string fallback)

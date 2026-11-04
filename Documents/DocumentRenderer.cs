@@ -23,11 +23,9 @@ public sealed class DocumentRenderer
         engine.RegisterHelper(
             "or",
             (_, arguments) =>
-                arguments
-                    .Take(arguments.Length - 1)
-                    .Any(value =>
-                        value is not null && !Equals(value, false) && value.ToString() != ""
-                    )
+                arguments.Any(value =>
+                    value is not null && !Equals(value, false) && value.ToString() != ""
+                )
         );
 
         var directory = Path.Combine(AppContext.BaseDirectory, "Templates");
