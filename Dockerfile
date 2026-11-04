@@ -1,28 +1,19 @@
 # syntax=docker/dockerfile:1
-
-ARG NODE_VERSION=22-alpine
 ARG TECTONIC_VERSION=0.15.0
 
-# ---------------------------------------------------------------------------
-# Build stage: install deps, compile TypeScript, copy templates
-# ---------------------------------------------------------------------------
-FROM node:${NODE_VERSION} AS build
-WORKDIR /app
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+WORKDIR /src
+COPY Dossier.csproj ./
+RUN dotnet restore Dossier.csproj
+COPY Program.cs ./
+COPY Api/ Api/
+COPY Documents/ Documents/
+COPY Pdf/ Pdf/
+COPY Validation/ Validation/
+COPY Schemas/ Schemas/
+COPY Templates/ Templates/
+RUN dotnet publish Dossier.csproj -c Release -o /out --no-restore
 
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
-
-COPY tsconfig.json tsconfig.base.json tsconfig.build.json ./
-COPY scripts ./scripts
-COPY src ./src
-RUN pnpm build
-
-# Drop dev dependencies for the runtime image.
-RUN pnpm prune --prod
-
-# ---------------------------------------------------------------------------
-# Tectonic stage: fetch the pinned static binary
-# ---------------------------------------------------------------------------
 FROM alpine:3.21 AS tectonic
 ARG TECTONIC_VERSION
 RUN apk add --no-cache tar \
@@ -30,43 +21,16 @@ RUN apk add --no-cache tar \
  | tar -xz -C /usr/local/bin \
  && chmod +x /usr/local/bin/tectonic
 
-# ---------------------------------------------------------------------------
-# Runtime stage
-# ---------------------------------------------------------------------------
-FROM node:${NODE_VERSION}
-
-# XeTeX (tectonic) needs fontconfig for font discovery.
-RUN apk add --no-cache fontconfig
-
-ENV NODE_ENV=production
-EXPOSE 3000
-
-RUN addgroup -S app && adduser -S -G app app
-
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
+RUN apk add --no-cache fontconfig curl
 WORKDIR /app
-
 COPY --from=tectonic /usr/local/bin/tectonic /usr/local/bin/tectonic
-
 USER app
-
-# Warm tectonic's bundle cache by compiling a static document that mirrors
-# the templates' preamble and exercises every macro the partials emit, so
-# every package a real resume needs is baked into the image and runtime
-# compilation never touches the network.
-#
-# This step deliberately does NOT depend on src/: it sits above the dist
-# copies so application code changes keep the warmed cache layer cached.
-# If you change the templates' packages or macros, update scripts/warmup.tex
-# to match (package parity is enforced by tests/template.test.ts).
-COPY --chown=app:app scripts/warmup.tex ./warmup.tex
-RUN cp warmup.tex /tmp/main.tex && cd /tmp && tectonic --keep-logs main.tex \
- && rm -f main.tex main.pdf main.log
-
-COPY --from=build --chown=app:app /app/node_modules ./node_modules
-COPY --from=build --chown=app:app /app/dist ./dist
-COPY --chown=app:app package.json ./
-
+COPY --chown=app:app scripts/warmup.tex /app/warmup.tex
+RUN cp /app/warmup.tex /tmp/main.tex && cd /tmp && tectonic --keep-logs main.tex \
+ && rm -f /tmp/main.tex /tmp/main.pdf /tmp/main.log
+COPY --from=build --chown=app:app /out/ /app/
+EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-  CMD wget -qO- "http://127.0.0.1:${PORT:-3000}/health" >/dev/null 2>&1 || exit 1
-
-CMD ["node", "dist/index.js"]
+  CMD curl -fsS "http://127.0.0.1:${PORT:-3000}/health" >/dev/null || exit 1
+CMD ["sh", "-c", "ASPNETCORE_URLS=http://${HOST:-0.0.0.0}:${PORT:-3000} exec dotnet Dossier.dll"]

@@ -1,9 +1,6 @@
-# Dependencies
-node_modules/
-
 # Build output
-dist/
-coverage/
+**/bin/
+**/obj/
 
 # Environment
 .env
@@ -16,18 +13,12 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# LaTeX build artifacts
+# LaTeX build artefacts
 *.aux
 *.log
 *.out
 *.synctex.gz
 
-# Logs
-npm-debug.log*
-
-# Generated resumes
+# Generated PDFs
 resume.pdf
 cover-letter.pdf
-
-# Local test payloads
-cover-letter-payload.json

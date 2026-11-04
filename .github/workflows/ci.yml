@@ -1,4 +1,7 @@
-name: Lint, build, and test
+name: Format, Build, Test
+
+permissions:
+  contents: read
 
 on:
   push:
@@ -11,29 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-dotnet@v4
         with:
-          run_install: false
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "pnpm"
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Type check
-        run: pnpm typecheck
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Format check
-        run: pnpm format:check
-
-      - name: Test
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
+          dotnet-version: '10.0.x'
+      - run: dotnet tool restore
+      - run: dotnet csharpier check .
+      - run: dotnet build Dossier.csproj --configuration Release -warnaserror
+      - run: dotnet test Dossier.Tests/Dossier.Tests.csproj --configuration Release
+      - run: dotnet publish Dossier.csproj --configuration Release --output publish

@@ -1,13 +1,5 @@
-node_modules
-dist
-coverage
 .git
-.gitignore
+Dossier.Tests
+**/bin
+**/obj
 .env
-.env.*
-!.env.example
-*.md
-Dockerfile
-docker-compose.yml
-.dockerignore
-resume.pdf
